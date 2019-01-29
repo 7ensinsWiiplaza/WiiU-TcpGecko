@@ -230,28 +230,6 @@ namespace GeckoApp
             SelectedFile = -1;
         }
 
-        private String ReadString(Stream inputStream)
-        {
-            Byte[] buffer = new Byte[1];
-            String result = string.Empty;
-            do
-            {
-                inputStream.Read(buffer, 0, 1);
-                if (buffer[0] != 0)
-                    result += (Char)buffer[0];
-            } while (buffer[0] != 0);
-            //result += " ";
-
-            do
-            {
-                inputStream.Read(buffer, 0, 1);
-                if (buffer[0] == 0)
-                    result += " ";
-            } while (buffer[0] == 0);
-
-            return result;
-        }
-
         public void DumpTree()
         {
             DumpTree("content");

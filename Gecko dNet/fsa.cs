@@ -2,37 +2,37 @@ using IconHelper;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-
+using System.Drawing;
 using System.IO;
 using System.Text;
 
 using System.Windows.Forms;
-using TCPTCPGecko;
 
 namespace GeckoApp
 {
     public class subFile : IComparable<subFile>
     {
-        private String PName;
-        private int PTag;
-        private fileStructure PParent;
+        public String name { get; set; }
 
-        public String name
+        public int tag { get; private set; }
+
+        public fileStructure parent { get; private set; }
+
+        public String Path
         {
-            get { return PName; }
-            set { PName = value; }
+            get
+            {
+                return parent.Path + "/" + name;
+            }
         }
 
-        public int tag { get { return PTag; } }
-        public fileStructure parent { get { return PParent; } }
-        public String Path { get { return parent.Path + "/" + name; } }
         public uint Length { get; private set; }
 
         public subFile(String name, int tag, uint length, fileStructure parent)
         {
-            PName = name;
-            PTag = tag;
-            PParent = parent;
+            this.name = name;
+            this.tag = tag;
+            this.parent = parent;
             Length = length;
         }
 
@@ -44,21 +44,22 @@ namespace GeckoApp
 
     public class fileStructure : IComparable<fileStructure>
     {
-        private String PName;
-        private int PTag;
-        private fileStructure PParent;
         private List<fileStructure> subFolders;
         private List<subFile> subFiles;
 
-        public String name
+        public String name { get; set; }
+
+        public String Path
         {
-            get { return PName; }
-            set { PName = value; }
+            get
+            {
+                return (parent == null ? string.Empty : parent.Path) + "/" + name;
+            }
         }
 
-        public String Path { get { return (parent == null ? string.Empty : parent.Path) + "/" + name; } }
-        public int tag { get { return PTag; } }
-        public fileStructure parent { get { return PParent; } }
+        public int tag { get; private set; }
+
+        public fileStructure parent { get; private set; }
 
         public IEnumerable<fileStructure> GetFolders()
         {
@@ -72,15 +73,16 @@ namespace GeckoApp
 
         private fileStructure(String name, int tag, fileStructure parent)
         {
-            PName = name;
-            PTag = tag;
-            PParent = parent;
+            this.name = name;
+            this.tag = tag;
+            this.parent = parent;
             subFiles = new List<subFile>();
             subFolders = new List<fileStructure>();
         }
 
         public fileStructure(String name, int tag) : this(name, tag, null)
-        { }
+        {
+        }
 
         public fileStructure addSubFolder(String name, int tag)
         {
@@ -104,7 +106,7 @@ namespace GeckoApp
         {
             subFolders.Sort();
             subFiles.Sort();
-            foreach (fileStructure nFS in subFolders)
+            foreach(fileStructure nFS in subFolders)
                 nFS.Sort();
         }
 
@@ -113,7 +115,7 @@ namespace GeckoApp
             tv.Nodes.Clear();
             TreeNode root = tv.Nodes.Add(this.name);
             TreeNode subnode;
-            foreach (fileStructure nFS in subFolders)
+            foreach(fileStructure nFS in subFolders)
             {
                 subnode = root.Nodes.Add(nFS.name);
                 subnode.ImageIndex = 0;
@@ -121,14 +123,14 @@ namespace GeckoApp
                 subnode.Tag = nFS;
                 nFS.ToTreeNode(subnode);
             }
-            foreach (subFile nSF in subFiles)
+            foreach(subFile nSF in subFiles)
             {
                 subnode = root.Nodes.Add(nSF.name);
                 subnode.ImageIndex = 2;
                 subnode.SelectedImageIndex = 2;
                 subnode.Tag = nSF;
             }
-            if (subFiles.Count == 0 && subFolders.Count == 0)
+            if(subFiles.Count == 0 && subFolders.Count == 0)
             {
                 subnode = root.Nodes.Add("(empty)");
                 subnode.ImageIndex = 2;
@@ -140,7 +142,7 @@ namespace GeckoApp
         private void ToTreeNode(TreeNode tn)
         {
             TreeNode subnode;
-            foreach (fileStructure nFS in subFolders)
+            foreach(fileStructure nFS in subFolders)
             {
                 subnode = tn.Nodes.Add(nFS.name);
                 subnode.Tag = nFS;
@@ -148,14 +150,14 @@ namespace GeckoApp
                 subnode.SelectedImageIndex = 1;
                 nFS.ToTreeNode(subnode);
             }
-            foreach (subFile nSF in subFiles)
+            foreach(subFile nSF in subFiles)
             {
                 subnode = tn.Nodes.Add(nSF.name);
                 subnode.ImageIndex = 2;
                 subnode.SelectedImageIndex = 2;
                 subnode.Tag = nSF;
             }
-            if (subFiles.Count == 0 && subFolders.Count == 0)
+            if(subFiles.Count == 0 && subFolders.Count == 0)
             {
                 subnode = tn.Nodes.Add("(empty)");
                 subnode.ImageIndex = 2;
@@ -174,8 +176,11 @@ namespace GeckoApp
 
         public UInt32 nameAddress;
 
-        public fsaEntry(UInt32 UDataAddress, UInt32 UNameOffset, UInt32 UOffset,
-            UInt32 UEntries, UInt32 UNameAddress)
+        public fsaEntry(UInt32 UDataAddress,
+                        UInt32 UNameOffset,
+                        UInt32 UOffset,
+                        UInt32 UEntries,
+                        UInt32 UNameAddress)
         {
             dataAddress = UDataAddress;
             nameOffset = UNameOffset;
@@ -197,19 +202,20 @@ namespace GeckoApp
 
         private ExceptionHandler exceptionHandling;
 
-        private int selectedFile;
-        private String selFile;
-
-        public FSA(TCPGecko UGecko, TreeView UTreeView, ToolStripMenuItem UExtractToolStripMenuItem, TextBox UFileSwapCode, ExceptionHandler UExceptionHandling)
+        public FSA(TCPGecko UGecko,
+                   TreeView UTreeView,
+                   ToolStripMenuItem UExtractToolStripMenuItem,
+                   TextBox UFileSwapCode,
+                   ExceptionHandler UExceptionHandling)
         {
             exceptionHandling = UExceptionHandling;
             imgList = new ImageList();
 #if !MONO
-            System.Drawing.Icon ni = IconReader.GetFolderIcon(IconReader.IconSize.Small,
-                IconReader.FolderType.Closed);
+            Icon ni = IconReader.GetFolderIcon(IconReader.IconSize.Small,
+                                                              IconReader.FolderType.Closed);
             imgList.Images.Add(ni);
             ni = IconReader.GetFolderIcon(IconReader.IconSize.Small,
-                IconReader.FolderType.Open);
+                                          IconReader.FolderType.Open);
             imgList.Images.Add(ni);
             ni = IconReader.GetFileIcon("?.?", IconReader.IconSize.Small, false);
             imgList.Images.Add(ni);
@@ -246,7 +252,7 @@ namespace GeckoApp
             UInt32 FSReadDir;
             UInt32 memalign;
             UInt32 free;
-            switch (gecko.OsVersionRequest())
+            switch(gecko.OsVersionRequest())
             {
                 case 400:
                 case 410:
@@ -301,7 +307,10 @@ namespace GeckoApp
                     break;
 
                 default:
-                    MessageBox.Show("Unsupported Wii U OS version.", "Version mismatch", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show("Unsupported Wii U OS version.",
+                                    "Version mismatch",
+                                    MessageBoxButtons.OK,
+                                    MessageBoxIcon.Error);
                     return;
             }
 
@@ -311,45 +320,45 @@ namespace GeckoApp
                 ret = gecko.rpc(FSInit);
 
                 UInt32 pClient = gecko.rpc(memalign, 0x1700, 0x20);
-                if (pClient == 0) goto noClient;
+                if(pClient == 0) goto noClient;
                 UInt32 pCmd = gecko.rpc(memalign, 0xA80, 0x20);
-                if (pCmd == 0) goto noCmd;
+                if(pCmd == 0) goto noCmd;
 
                 ret = gecko.rpc(FSAddClient, pClient, 0);
                 ret = gecko.rpc(FSInitCmdBlock, pCmd);
 
                 UInt32 pDh = gecko.rpc(memalign, 4, 4);
-                if (pDh == 0) goto noDh;
+                if(pDh == 0) goto noDh;
                 UInt32 pPath = gecko.rpc(memalign, 0x200, 0x20);
-                if (pPath == 0) goto noPath;
+                if(pPath == 0) goto noPath;
                 UInt32 pBuf = gecko.rpc(memalign, 0x200, 0x20);
-                if (pBuf == 0) goto noBuf;
+                if(pBuf == 0) goto noBuf;
 
                 root = new fileStructure("vol", -1);
                 Queue<fileStructure> scanQueue = new Queue<fileStructure>();
-                foreach (String item in folders)
+                foreach(String item in folders)
                 {
                     scanQueue.Enqueue(root.addSubFolder(item, -1));
                 }
-                while (scanQueue.Count > 0)
+                while(scanQueue.Count > 0)
                 {
                     fileStructure current = scanQueue.Dequeue();
-                    using (MemoryStream ms = new MemoryStream(Encoding.ASCII.GetBytes(current.Path + "\0")))
+                    using(MemoryStream ms = new MemoryStream(Encoding.ASCII.GetBytes(current.Path + "\0")))
                     {
                         gecko.Upload(pPath, pPath + (uint)ms.Length, ms);
                     }
 
                     ret = gecko.rpc(FSOpenDir, pClient, pCmd, pPath, pDh, 0xffffffff);
-                    if (ret != 0) goto noDir;
+                    if(ret != 0) goto noDir;
 
                     UInt32 dh = gecko.peek(pDh);
 
                     do
                     {
                         ret = gecko.rpc(FSReadDir, pClient, pCmd, dh, pBuf, 0xffffffff);
-                        if (ret != 0) break;
+                        if(ret != 0) break;
 
-                        using (MemoryStream ms = new MemoryStream())
+                        using(MemoryStream ms = new MemoryStream())
                         {
                             gecko.Dump(pBuf, pBuf + 0x200, ms);
 
@@ -360,11 +369,10 @@ namespace GeckoApp
                             String name = new String(Encoding.ASCII.GetChars(data, 0x64, 0x100));
                             name = name.Remove(name.IndexOf('\0'));
 
-                            if ((attr & 0x80000000) != 0)
+                            if((attr & 0x80000000) != 0)
                             {
                                 scanQueue.Enqueue(current.addSubFolder(name, -1));
-                            }
-                            else
+                            } else
                             {
                                 current.addFile(name, -1, size);
                             }
@@ -372,35 +380,33 @@ namespace GeckoApp
                     } while (true);
 
                     gecko.rpc(FSCloseDir, pClient, pCmd, dh, 0);
-                noDir:
+                    noDir:
                     continue;
                 }
 
                 gecko.rpc(free, pBuf);
-            noBuf:
+                noBuf:
                 gecko.rpc(free, pPath);
-            noPath:
+                noPath:
                 gecko.rpc(free, pDh);
-            noDh:
+                noDh:
 
                 ret = gecko.rpc(FSDelClient, pClient);
 
                 gecko.rpc(free, pCmd);
-            noCmd:
+                noCmd:
                 gecko.rpc(free, pClient);
-            noClient:
+                noClient:
 
-                if (root != null)
+                if(root != null)
                 {
                     root.Sort();
                     root.ToTreeView(treeView);
                 }
-            }
-            catch (ETCPGeckoException e)
+            } catch(ETCPGeckoException e)
             {
                 exceptionHandling.HandleException(e);
-            }
-            catch
+            } catch
             {
             }
         }
@@ -416,7 +422,7 @@ namespace GeckoApp
             UInt32 FSReadFile;
             UInt32 memalign;
             UInt32 free;
-            switch (gecko.OsVersionRequest())
+            switch(gecko.OsVersionRequest())
             {
                 case 400:
                 case 410:
@@ -471,7 +477,10 @@ namespace GeckoApp
                     break;
 
                 default:
-                    MessageBox.Show("Unsupported Wii U OS version.", "Version mismatch", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show("Unsupported Wii U OS version.",
+                                    "Version mismatch",
+                                    MessageBoxButtons.OK,
+                                    MessageBoxIcon.Error);
                     return;
             }
 
@@ -481,80 +490,77 @@ namespace GeckoApp
                 ret = gecko.rpc(FSInit);
 
                 UInt32 pClient = gecko.rpc(memalign, 0x1700, 0x20);
-                if (pClient == 0) goto noClient;
+                if(pClient == 0) goto noClient;
                 UInt32 pCmd = gecko.rpc(memalign, 0xA80, 0x20);
-                if (pCmd == 0) goto noCmd;
+                if(pCmd == 0) goto noCmd;
 
                 ret = gecko.rpc(FSAddClient, pClient, 0);
                 ret = gecko.rpc(FSInitCmdBlock, pCmd);
 
                 UInt32 pFh = gecko.rpc(memalign, 4, 4);
-                if (pFh == 0) goto noFh;
+                if(pFh == 0) goto noFh;
                 UInt32 pPath = gecko.rpc(memalign, 0x200, 0x20);
-                if (pPath == 0) goto noPath;
+                if(pPath == 0) goto noPath;
                 UInt32 pBuf = gecko.rpc(memalign, 0x400 * 256, 0x40);
-                if (pBuf == 0) goto noBuf;
+                if(pBuf == 0) goto noBuf;
 
-                foreach (var item in paths)
+                foreach(var item in paths)
                 {
-                    using (MemoryStream ms = new MemoryStream(Encoding.ASCII.GetBytes("r\0" + item.Key + "\0")))
+                    using(MemoryStream ms = new MemoryStream(Encoding.ASCII.GetBytes("r\0" + item.Key + "\0")))
                     {
                         gecko.Upload(pPath, pPath + (uint)ms.Length, ms);
                     }
 
                     ret = gecko.rpc(FSOpenFile, pClient, pCmd, pPath + 2, pPath, pFh, 0xffffffff);
-                    if (ret != 0) goto noFile;
+                    if(ret != 0) goto noFile;
 
                     UInt32 fh = gecko.peek(pFh);
 
                     try
                     {
-                        using (FileStream fs = new FileStream(item.Value, FileMode.Create))
+                        using(FileStream fs = new FileStream(item.Value, FileMode.Create))
                         {
                             do
                             {
                                 ret = gecko.rpc(FSReadFile, pClient, pCmd, pBuf, 1, 0x400 * 256, fh, 0, 0xffffffff);
-                                if (ret <= 0) break;
+                                if(ret <= 0) break;
 
                                 gecko.Dump(pBuf, pBuf + ret, fs);
                             } while (true);
                         }
-                    }
-                    catch (IOException)
+                    } catch(IOException)
                     {
                     }
 
                     gecko.rpc(FSCloseFile, pClient, pCmd, fh, 0);
-                noFile:
+                    noFile:
                     continue;
                 }
                 gecko.rpc(free, pBuf);
-            noBuf:
+                noBuf:
                 gecko.rpc(free, pPath);
-            noPath:
+                noPath:
                 gecko.rpc(free, pFh);
-            noFh:
+                noFh:
 
                 ret = gecko.rpc(FSDelClient, pClient);
 
                 gecko.rpc(free, pCmd);
-            noCmd:
+                noCmd:
                 gecko.rpc(free, pClient);
-            noClient:
+                noClient:
                 ;
-            }
-            catch (ETCPGeckoException e)
+            } catch(ETCPGeckoException e)
             {
                 exceptionHandling.HandleException(e);
-            }
-            catch
+            } catch
             {
             }
         }
 
         private void TreeView_NodeMouseClick(object sender, TreeNodeMouseClickEventArgs e)
         {
-            if (e.Button == MouseButtons.Right)
+            if(e.Button == MouseButtons.Right)
             {
                 treeView.SelectedNode = e.Node;
             }
@@ -562,22 +568,20 @@ namespace GeckoApp
 
         private void treeView_AfterSelect(object sender, TreeViewEventArgs e)
         {
-            if (e.Node != null && e.Node.Tag != null)
+            if(e.Node != null && e.Node.Tag != null)
             {
-                if (e.Node.Tag.GetType() == typeof(fileStructure))
+                if(e.Node.Tag.GetType() == typeof(fileStructure))
                 {
                     fileStructure folder = e.Node.Tag as fileStructure;
 
                     fileSwapCode.Text = folder.Path;
-                }
-                else
+                } else
                 {
                     subFile file = e.Node.Tag as subFile;
 
                     fileSwapCode.Text = file.name + "\nLength: " + file.Length.ToString() + " bytes";
                 }
-            }
-            else
+            } else
             {
                 fileSwapCode.Text = string.Empty;
             }
@@ -590,39 +594,40 @@ namespace GeckoApp
 
         private string last_folder = string.Empty;
 
-        public string SelFile { get => selFile; set => selFile = value; }
-        public int SelectedFile { get => selectedFile; set => selectedFile = value; }
+        public string SelFile { get; set; }
+
+        public int SelectedFile { get; set; }
 
         private void extractToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            if (treeView.SelectedNode == null || treeView.SelectedNode.Tag == null) return;
+            if(treeView.SelectedNode == null || treeView.SelectedNode.Tag == null) return;
 
-            if (treeView.SelectedNode.Tag.GetType() == typeof(fileStructure))
+            if(treeView.SelectedNode.Tag.GetType() == typeof(fileStructure))
             {
                 fileStructure folder = treeView.SelectedNode.Tag as fileStructure;
 
-                using (FolderBrowserDialog sfd = new FolderBrowserDialog())
+                using(FolderBrowserDialog sfd = new FolderBrowserDialog())
                 {
                     sfd.Description = "Select folder to be root of extracting " + folder.name;
                     sfd.SelectedPath = last_folder;
-                    if (sfd.ShowDialog() == DialogResult.OK)
+                    if(sfd.ShowDialog() == DialogResult.OK)
                     {
                         last_folder = sfd.SelectedPath;
                         Queue<fileStructure> fs = new Queue<fileStructure>();
                         List<KeyValuePair<String, String>> files = new List<KeyValuePair<String, String>>();
                         fs.Enqueue(folder);
 
-                        while (fs.Count > 0)
+                        while(fs.Count > 0)
                         {
                             fileStructure current = fs.Dequeue();
 
-                            foreach (var item in current.GetFiles())
+                            foreach(var item in current.GetFiles())
                             {
                                 String path = sfd.SelectedPath + item.Path.Substring(folder.Path.Length);
-                                if (!File.Exists(path))
+                                if(!File.Exists(path))
                                     files.Add(new KeyValuePair<String, String>(item.Path, path));
                             }
-                            foreach (var item in current.GetFolders())
+                            foreach(var item in current.GetFolders())
                             {
                                 fs.Enqueue(item);
                                 Directory.CreateDirectory(sfd.SelectedPath + item.Path.Substring(folder.Path.Length));
@@ -632,19 +637,19 @@ namespace GeckoApp
                         ExtractFile(files);
                     }
                 }
-            }
-            else
+            } else
             {
                 subFile file = treeView.SelectedNode.Tag as subFile;
 
-                using (SaveFileDialog sfd = new SaveFileDialog())
+                using(SaveFileDialog sfd = new SaveFileDialog())
                 {
                     sfd.Title = "Extract file " + file.name;
                     sfd.Filter = "All Files (*.*)|*.*";
                     sfd.FileName = file.name;
-                    if (sfd.ShowDialog() == DialogResult.OK)
+                    if(sfd.ShowDialog() == DialogResult.OK)
                     {
-                        ExtractFile(new KeyValuePair<String, String>[] { new KeyValuePair<String, String>(file.Path, sfd.FileName) });
+                        ExtractFile(new KeyValuePair<String, String>[]
+                            { new KeyValuePair<String, String>(file.Path, sfd.FileName) });
                     }
                 }
             }

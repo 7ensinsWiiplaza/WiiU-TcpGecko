@@ -1,10 +1,10 @@
 using Ionic.Zip;
+using Ionic.Zlib;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Threading;
-using TCPTCPGecko;
 
 namespace GeckoApp
 {
@@ -17,33 +17,25 @@ namespace GeckoApp
 
     public class SearchHistoryManager
     {
-        private bool backgroundWriting;
-
-        public bool BackgroundWriting
-        {
-            get { return backgroundWriting; }
-        }
+        public bool BackgroundWriting { get; private set; }
 
         public SearchHistoryManager()
         {
-            backgroundWriting = false;
+            BackgroundWriting = false;
         }
 
         public void SaveSearchBackground(int index, List<UInt32> resultsList, Dump searchDump)
         {
             SearchItem foo = new SearchItem();
-            // make a copy in case the user starts deleting, sorting, etc the original list
             foo.resultsList = new List<uint>(resultsList);
             foo.searchDump = searchDump;
             foo.index = index;
 
-            // block in the event of a rapid-fire double call
-            while (backgroundWriting) ;
+            while(BackgroundWriting) ;
 
             Thread zipThread = new Thread(new ParameterizedThreadStart(SaveSearchBackground));
 
-            // Set the state before calling the thread
-            backgroundWriting = true;
+            BackgroundWriting = true;
 
             zipThread.Start(foo);
         }
@@ -54,15 +46,14 @@ namespace GeckoApp
 
             SaveSearch(foo.index, foo.resultsList, foo.searchDump);
 
-            // clear the state when the thread is done
-            backgroundWriting = false;
+            BackgroundWriting = false;
         }
 
         public void SaveHistory(string path, int DumpNum, SearchSize size)
         {
-            using (ZipFile zip = new ZipFile())
+            using(ZipFile zip = new ZipFile())
             {
-                zip.CompressionLevel = Ionic.Zlib.CompressionLevel.None;
+                zip.CompressionLevel = CompressionLevel.None;
                 zip.AddDirectory("DumpHistory");
                 zip.Comment = DumpNum.ToString() + ":" + size.ToString();
 
@@ -72,32 +63,38 @@ namespace GeckoApp
 
         public void LoadHistory(string path, out int DumpNum, out SearchSize size)
         {
-            using (ZipFile zip = ZipFile.Read(path))
+            using(ZipFile zip = ZipFile.Read(path))
             {
-                foreach (ZipEntry e in zip)
+                foreach(ZipEntry e in zip)
                 {
-                    e.Extract("DumpHistory", ExtractExistingFileAction.OverwriteSilently);  // overwrite == true
+                    e.Extract("DumpHistory", ExtractExistingFileAction.OverwriteSilently);
                 }
                 string comment = zip.Comment;
                 string[] split = comment.Split(':');
                 DumpNum = Convert.ToInt32(split[0]);
-                switch (split[1])
+                switch(split[1])
                 {
-                    case "Bit16": size = SearchSize.Bit16; break;
-                    case "Bit8": size = SearchSize.Bit8; break;
-                    case "Single": size = SearchSize.Single; break;
-                    case "Bit32": size = SearchSize.Bit32; break;
-                    default: size = SearchSize.Bit32; break;
+                    case "Bit16":
+                        size = SearchSize.Bit16;
+                        break;
+                    case "Bit8":
+                        size = SearchSize.Bit8;
+                        break;
+                    case "Single":
+                        size = SearchSize.Single;
+                        break;
+                    case "Bit32":
+                        size = SearchSize.Bit32;
+                        break;
+                    default:
+                        size = SearchSize.Bit32;
+                        break;
                 }
-                //switch (
-                //retVal = zip.Comment;
             }
-            //return retVal;
         }
 
         public void SaveSearch(int index, List<UInt32> resultsList, Dump searchDump)
         {
-            // TODO subdir?  check file exists?
             char delim = Path.DirectorySeparatorChar;
             SaveSearch("DumpHistory" + delim + "DumpHistory" + index + ".zip", resultsList, searchDump);
         }
@@ -105,29 +102,18 @@ namespace GeckoApp
         public void SaveSearch(string filepath, List<UInt32> resultsList, Dump searchDump)
         {
             ZipOutputStream outstream = new ZipOutputStream(filepath);
-            outstream.CompressionLevel = Ionic.Zlib.CompressionLevel.BestSpeed;
+            outstream.CompressionLevel = CompressionLevel.BestSpeed;
             BinaryFormatter formatter = new BinaryFormatter();
 
-            // First entry is the dump
             outstream.PutNextEntry("dump");
 
-            //DateTime start = Logger.WriteLineTimedStarted("compressing search dump");
-
-            // Must put the addresses first, so that it can derive the right number of bytes to read for the dump
             formatter.Serialize(outstream, searchDump.StartAddress);
             formatter.Serialize(outstream, searchDump.EndAddress);
             outstream.Write(searchDump.mem, 0, (int)(searchDump.EndAddress - searchDump.StartAddress));
 
-            //Logger.WriteLineTimedFinished("compressing search dump", start);
-
-            // Second entry is the list
             outstream.PutNextEntry("list");
 
-            //start = Logger.WriteLineTimedStarted("compressing search list");
-
             formatter.Serialize(outstream, resultsList);
-
-            //Logger.WriteLineTimedFinished("compressing search list", start);
 
             outstream.Close();
             outstream.Dispose();
@@ -141,13 +127,11 @@ namespace GeckoApp
 
         public Dump LoadSearchDump(string filepath)
         {
-            // spin while background writing to prevent us from reading a file that has yet to be written
-            while (BackgroundWriting) ;
+            while(BackgroundWriting) ;
 
             ZipInputStream instream = new ZipInputStream(filepath);
             BinaryFormatter formatter = new BinaryFormatter();
 
-            // First entry is the dump
             instream.GetNextEntry();
             Dump searchDump = new Dump((uint)formatter.Deserialize(instream), (uint)formatter.Deserialize(instream));
             instream.Read(searchDump.mem, 0, (int)(searchDump.EndAddress - searchDump.StartAddress));
@@ -166,16 +150,13 @@ namespace GeckoApp
 
         public List<UInt32> LoadSearchList(string filepath)
         {
-            // spin while background writing to prevent us from reading a file that has yet to be written
-            while (BackgroundWriting) ;
+            while(BackgroundWriting) ;
 
             ZipInputStream instream = new ZipInputStream(filepath);
             BinaryFormatter formatter = new BinaryFormatter();
 
-            // First entry is the dump
             instream.GetNextEntry();
 
-            // Second entry is the list
             instream.GetNextEntry();
 
             List<UInt32> searchList = (List<UInt32>)formatter.Deserialize(instream);
@@ -191,25 +172,21 @@ namespace GeckoApp
     {
         private List<UInt32> resultsList;
         private Dump searchDump;
-        private bool backgroundWriting;
 
         public SearchHistoryItem()
         {
             resultsList = null;
             searchDump = null;
-            backgroundWriting = false;
+            BackgroundWriting = false;
         }
 
-        public bool BackgroundWriting
-        {
-            get { return backgroundWriting; }
-        }
+        public bool BackgroundWriting { get; private set; }
 
         public void WriteCompressedZipBackground(string filepath)
         {
             Thread zipThread = new Thread(new ParameterizedThreadStart(WriteCompressedZipBackgroundObj));
 
-            backgroundWriting = true;
+            BackgroundWriting = true;
 
             zipThread.Start(filepath);
         }
@@ -219,17 +196,16 @@ namespace GeckoApp
             string path = filepath as string;
 
             WriteCompressedZip(path);
-            backgroundWriting = false;
+            BackgroundWriting = false;
         }
 
         public void WriteCompressedZip(string filepath)
         {
             ZipOutputStream outstream = new ZipOutputStream(filepath);
-            outstream.CompressionLevel = Ionic.Zlib.CompressionLevel.BestSpeed;
+            outstream.CompressionLevel = CompressionLevel.BestSpeed;
             BinaryFormatter formatter = new BinaryFormatter();
             outstream.PutNextEntry("dump");
 
-            //Logger.WriteLineTimed("Started compressing search dump");
             DateTime startTime = DateTime.Now;
 
             formatter.Serialize(outstream, searchDump.StartAddress);
@@ -237,33 +213,25 @@ namespace GeckoApp
             outstream.Write(searchDump.mem, 0, (int)(searchDump.EndAddress - searchDump.StartAddress));
 
             DateTime endTime = DateTime.Now;
-            //Logger.WriteLineTimed("Finished compressing search dump in " + (new TimeSpan(endTime.Ticks - startTime.Ticks).TotalSeconds));
-
             outstream.PutNextEntry("list");
 
-            //Logger.WriteLineTimed("Started copying search list");
             startTime = DateTime.Now;
 
             List<UInt32> copy = new List<uint>(resultsList);
 
             endTime = DateTime.Now;
-            //Logger.WriteLineTimed("Finished copying search list in " + (new TimeSpan(endTime.Ticks - startTime.Ticks).TotalSeconds));
-
-            //Logger.WriteLineTimed("Started compressing search list");
             startTime = DateTime.Now;
 
             formatter.Serialize(outstream, resultsList);
 
             endTime = DateTime.Now;
-            //Logger.WriteLineTimed("Finished compressing search list in " + (new TimeSpan(endTime.Ticks - startTime.Ticks).TotalSeconds));
-
             outstream.Close();
             outstream.Dispose();
         }
 
         public void ReadCompressedZip(string filepath)
         {
-            while (BackgroundWriting) ;
+            while(BackgroundWriting) ;
 
             ZipInputStream instream = new ZipInputStream(filepath);
             BinaryFormatter formatter = new BinaryFormatter();

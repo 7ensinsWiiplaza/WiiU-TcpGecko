@@ -18,7 +18,7 @@ namespace GeckoApp
             this.PValue.Text = GlobalFunctions.toHex(value, maxLength);
             this.PValue.MaxLength = maxLength;
             bool result = (this.ShowDialog() == DialogResult.OK);
-            if (result)
+            if(result)
                 value = inputValue;
             return result;
         }
@@ -31,12 +31,11 @@ namespace GeckoApp
         private void CheckInput_Click(object sender, EventArgs e)
         {
             UInt32 tryHex;
-            if (GlobalFunctions.tryToHex(PValue.Text, out tryHex))
+            if(GlobalFunctions.tryToHex(PValue.Text, out tryHex))
             {
                 inputValue = tryHex;
                 DialogResult = DialogResult.OK;
-            }
-            else
+            } else
                 MessageBox.Show("Invalid value!");
         }
     }

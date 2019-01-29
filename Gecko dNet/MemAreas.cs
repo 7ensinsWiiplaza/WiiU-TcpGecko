@@ -1,5 +1,4 @@
 ﻿using System;
-using TCPTCPGecko;
 
 namespace GeckoApp
 {
@@ -14,50 +13,49 @@ namespace GeckoApp
 
     public class AddressRange
     {
-        private AddressType PDesc;
-        private Byte PId;
-        private UInt32 PLow;
-        private UInt32 PHigh;
+        public AddressType description { get; private set; }
 
-        public AddressType description { get { return PDesc; } }
-        public Byte id { get { return PId; } }
-        public UInt32 low { get { return PLow; } }
-        public UInt32 high { get { return PHigh; } }
+        public Byte id { get; private set; }
+
+        public UInt32 low { get; private set; }
+
+        public UInt32 high { get; private set; }
 
         public AddressRange(AddressType desc, Byte id, UInt32 low, UInt32 high)
         {
-            this.PId = id;
-            this.PDesc = desc;
-            this.PLow = low;
-            this.PHigh = high;
+            this.id = id;
+            this.description = desc;
+            this.low = low;
+            this.high = high;
         }
 
-        public AddressRange(AddressType desc, UInt32 low, UInt32 high) :
-            this(desc, (Byte)(low >> 24), low, high)
-        { }
+        public AddressRange(AddressType desc, UInt32 low, UInt32 high) : this(desc, (Byte)(low >> 24), low, high)
+        {
+        }
     }
 
     public static class ValidMemory
     {
         public static bool addressDebug = false;
 
-        public static readonly AddressRange[] ValidAreas = new AddressRange[] {
-             new AddressRange(AddressType.Ex,  0x01000000,0x01800000),
-             new AddressRange(AddressType.Ex,  0x0e300000,0x10000000),
-             new AddressRange(AddressType.Rw,  0x10000000,0x45000000),
-             new AddressRange(AddressType.Ro,  0xe0000000,0xe4000000),
-             new AddressRange(AddressType.Ro,  0xe8000000,0xea000000),
-             new AddressRange(AddressType.Ro,  0xf4000000,0xf6000000),
-             new AddressRange(AddressType.Ro,  0xf6000000,0xf6800000),
-             new AddressRange(AddressType.Ro,  0xf8000000,0xfb000000),
-             new AddressRange(AddressType.Ro,  0xfb000000,0xfb800000),
-             new AddressRange(AddressType.Rw,  0xfffe0000,0xffffffff)
+        public static readonly AddressRange[] ValidAreas = new AddressRange[]
+        {
+            new AddressRange(AddressType.Ex, 0x01000000, 0x01800000),
+            new AddressRange(AddressType.Ex, 0x0e300000, 0x10000000),
+            new AddressRange(AddressType.Rw, 0x10000000, 0x45000000),
+            new AddressRange(AddressType.Ro, 0xe0000000, 0xe4000000),
+            new AddressRange(AddressType.Ro, 0xe8000000, 0xea000000),
+            new AddressRange(AddressType.Ro, 0xf4000000, 0xf6000000),
+            new AddressRange(AddressType.Ro, 0xf6000000, 0xf6800000),
+            new AddressRange(AddressType.Ro, 0xf8000000, 0xfb000000),
+            new AddressRange(AddressType.Ro, 0xfb000000, 0xfb800000),
+            new AddressRange(AddressType.Rw, 0xfffe0000, 0xffffffff)
         };
 
         public static AddressType rangeCheck(UInt32 address)
         {
             int id = rangeCheckId(address);
-            if (id == -1)
+            if(id == -1)
                 return AddressType.Unknown;
             else
                 return ValidAreas[id].description;
@@ -65,10 +63,10 @@ namespace GeckoApp
 
         public static int rangeCheckId(UInt32 address)
         {
-            for (int i = 0; i < ValidAreas.Length; i++)
+            for(int i = 0; i < ValidAreas.Length; i++)
             {
                 AddressRange range = ValidAreas[i];
-                if (address >= range.low && address < range.high)
+                if(address >= range.low && address < range.high)
                     return i;
             }
             return -1;
@@ -76,7 +74,7 @@ namespace GeckoApp
 
         public static bool validAddress(UInt32 address, bool debug)
         {
-            if (debug)
+            if(debug)
                 return true;
             return (rangeCheckId(address) >= 0);
         }
@@ -88,7 +86,7 @@ namespace GeckoApp
 
         public static bool validRange(UInt32 low, UInt32 high, bool debug)
         {
-            if (debug)
+            if(debug)
                 return true;
             return (rangeCheckId(low) == rangeCheckId(high - 1));
         }
@@ -101,24 +99,28 @@ namespace GeckoApp
         public static void setDataUpper(TCPGecko upper)
         {
             UInt32 mem;
-            switch (upper.OsVersionRequest())
+            switch(upper.OsVersionRequest())
             {
                 case 400:
                 case 410:
                     mem = upper.peek_kern(0xFFEB902C);
                     break;
+
                 case 500:
                 case 510:
                     mem = upper.peek_kern(0xFFEA9E4C);
                     break;
+
                 case 532:
                 case 540:
                     mem = upper.peek_kern(0xFFEAAA1C);
                     break;
+
                 case 550:
                 case 551:
                     mem = upper.peek_kern(0xFFEAB7AC);
                     break;
+
                 default:
                     return;
             }

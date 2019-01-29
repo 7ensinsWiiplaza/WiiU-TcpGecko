@@ -4,7 +4,6 @@ using System.IO;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Windows.Forms;
-using TCPTCPGecko;
 
 namespace GeckoApp
 {
@@ -21,7 +20,6 @@ namespace GeckoApp
     public class BreakpointCondition
     {
         private int PRegister;
-        private UInt32 PValue;
         private BreakpointComparison PCondition;
         public UInt32 GroupNumber;
 
@@ -33,24 +31,14 @@ namespace GeckoApp
             }
             set
             {
-                if (value >= 0 && value < 73)
+                if(value >= 0 && value < 73)
                     PRegister = value;
                 else
                     PRegister = 0;
             }
         }
 
-        public UInt32 value
-        {
-            get
-            {
-                return PValue;
-            }
-            set
-            {
-                PValue = value;
-            }
-        }
+        public UInt32 value { get; set; }
 
         public BreakpointComparison condition
         {
@@ -64,35 +52,38 @@ namespace GeckoApp
             }
         }
 
-        public BreakpointCondition(int register, UInt32 value,
-            BreakpointComparison condition)
+        public BreakpointCondition(int register,
+                                   UInt32 value,
+                                   BreakpointComparison condition)
         {
             this.register = register;
-            PValue = value;
+            this.value = value;
             PCondition = condition;
             GroupNumber = 1;
         }
 
-        public BreakpointCondition(int register, UInt32 value,
-            BreakpointComparison condition, UInt32 groupNumber)
+        public BreakpointCondition(int register,
+                                   UInt32 value,
+                                   BreakpointComparison condition,
+                                   UInt32 groupNumber)
         {
             this.register = register;
-            PValue = value;
+            this.value = value;
             PCondition = condition;
             GroupNumber = groupNumber;
         }
 
         public bool Compare(Stream regStream, BreakpointType bpType, UInt32 bpAddress, TCPGecko gecko)
         {
-            if (regStream.Length != 0x120)
+            if(regStream.Length != 0x120)
                 return false;
 
             int spos = PRegister * 4;
 
             UInt32 val = 0;
-            if (spos == 0x120)
+            if(spos == 0x120)
             {
-                switch (bpType)
+                switch(bpType)
                 {
                     case BreakpointType.Read:
                         val = gecko.peek(bpAddress);
@@ -107,32 +98,31 @@ namespace GeckoApp
                     default:
                         return true;
                 }
-            }
-            else
+            } else
             {
                 regStream.Seek(spos, SeekOrigin.Begin);
                 val = GlobalFunctions.ReadStream(regStream);
             }
 
-            switch (PCondition)
+            switch(PCondition)
             {
                 case BreakpointComparison.Equal:
-                    return (val == PValue);
+                    return (val == value);
 
                 case BreakpointComparison.NotEqual:
-                    return (val != PValue);
+                    return (val != value);
 
                 case BreakpointComparison.Greater:
-                    return (val > PValue);
+                    return (val > value);
 
                 case BreakpointComparison.GreaterEqual:
-                    return (val >= PValue);
+                    return (val >= value);
 
                 case BreakpointComparison.Lower:
-                    return (val < PValue);
+                    return (val < value);
 
                 case BreakpointComparison.LowerEqual:
-                    return (val <= PValue);
+                    return (val <= value);
             }
 
             return true;
@@ -141,60 +131,73 @@ namespace GeckoApp
         public override String ToString()
         {
             String result = GroupNumber + ": ";
-            if (PRegister >= BPList.longRegNames.Length)
+            if(PRegister >= BPList.longRegNames.Length)
                 result += "VoA ";
             else
                 result += BPList.longRegNames[PRegister].Trim() + " ";
-            switch (PCondition)
+            switch(PCondition)
             {
                 case BreakpointComparison.Equal:
-                    result += "=="; break;
+                    result += "==";
+                    break;
                 case BreakpointComparison.NotEqual:
-                    result += "!="; break;
+                    result += "!=";
+                    break;
                 case BreakpointComparison.Greater:
-                    result += ">"; break;
+                    result += ">";
+                    break;
                 case BreakpointComparison.GreaterEqual:
-                    result += ">="; break;
+                    result += ">=";
+                    break;
                 case BreakpointComparison.Lower:
-                    result += "<"; break;
+                    result += "<";
+                    break;
                 case BreakpointComparison.LowerEqual:
-                    result += "<="; break;
+                    result += "<=";
+                    break;
             }
-            result += " " + GlobalFunctions.toHex(PValue);
+            result += " " + GlobalFunctions.toHex(value);
             return result;
         }
 
         public static BreakpointCondition FromString(String cond)
         {
-            if (cond == String.Empty) return null;
+            if(cond == String.Empty) return null;
             String[] sep = cond.Split(new char[] { ' ', ':' });
             int register = Convert.ToInt32(BPList.regTextToID(sep[2]));
 
-            if (sep[2] == "VoA") register = BPList.longRegNames.Length;
+            if(sep[2] == "VoA") register = BPList.longRegNames.Length;
 
             uint value;
-            if (!(GlobalFunctions.tryToHex(sep[4], out value)))
+            if(!(GlobalFunctions.tryToHex(sep[4], out value)))
             {
                 return null;
             }
             uint group = Convert.ToUInt32(sep[0]);
             BreakpointComparison comp;
-            switch (sep[3])
+            switch(sep[3])
             {
                 case "==":
-                    comp = BreakpointComparison.Equal; break;
+                    comp = BreakpointComparison.Equal;
+                    break;
                 case "!=":
-                    comp = BreakpointComparison.NotEqual; break;
+                    comp = BreakpointComparison.NotEqual;
+                    break;
                 case ">":
-                    comp = BreakpointComparison.Greater; break;
+                    comp = BreakpointComparison.Greater;
+                    break;
                 case ">=":
-                    comp = BreakpointComparison.GreaterEqual; break;
+                    comp = BreakpointComparison.GreaterEqual;
+                    break;
                 case "<":
-                    comp = BreakpointComparison.Lower; break;
+                    comp = BreakpointComparison.Lower;
+                    break;
                 case "<=":
-                    comp = BreakpointComparison.LowerEqual; break;
+                    comp = BreakpointComparison.LowerEqual;
+                    break;
                 default:
-                    comp = BreakpointComparison.Equal; break;
+                    comp = BreakpointComparison.Equal;
+                    break;
             }
             return new BreakpointCondition(register, value, comp, group);
         }
@@ -245,23 +248,23 @@ namespace GeckoApp
 
         public bool Check(Stream regStream, BreakpointType bpType, UInt32 bpAddress, TCPGecko gecko)
         {
-            if (!Enabled)
+            if(!Enabled)
                 return true;
-            if (PConditions.Count == 0)
+            if(PConditions.Count == 0)
                 return true;
-            if (regStream.Length != 0x120)
+            if(regStream.Length != 0x120)
                 return false;
             List<UInt32> groups = new List<uint>();
 
-            foreach (BreakpointCondition cond in PConditions)
+            foreach(BreakpointCondition cond in PConditions)
             {
-                if (!groups.Contains(cond.GroupNumber))
+                if(!groups.Contains(cond.GroupNumber))
                     groups.Add(cond.GroupNumber);
             }
 
-            foreach (BreakpointCondition cond in PConditions)
+            foreach(BreakpointCondition cond in PConditions)
             {
-                if (groups.Contains(cond.GroupNumber) && !cond.Compare(regStream, bpType, bpAddress, gecko))
+                if(groups.Contains(cond.GroupNumber) && !cond.Compare(regStream, bpType, bpAddress, gecko))
                     groups.Remove(cond.GroupNumber);
             }
 
@@ -277,16 +280,16 @@ namespace GeckoApp
         public void UpdateOutput()
         {
             List<int> indices = new List<int>();
-            for (int i = 0; i < PConditionList.SelectedIndices.Count; i++)
+            for(int i = 0; i < PConditionList.SelectedIndices.Count; i++)
             {
                 indices.Add(PConditionList.SelectedIndices[i]);
             }
             PConditionList.Items.Clear();
-            foreach (BreakpointCondition cond in PConditions)
+            foreach(BreakpointCondition cond in PConditions)
             {
                 PConditionList.Items.Add(cond.ToString());
             }
-            foreach (int index in indices)
+            foreach(int index in indices)
             {
                 PConditionList.SelectedIndices.Add(index);
             }
@@ -337,9 +340,6 @@ namespace GeckoApp
         private int PSkipCount;
 
         private bool listSet;
-        private bool stepOverPossible;
-        private UInt32 MemoryAccessAddress;
-        private ConditionalBranchState branchState;
         private String[] currentInstruction;
         private String currentInstructionAndAddress;
 
@@ -361,47 +361,22 @@ namespace GeckoApp
 
         public void DecIndent()
         {
-            if (logIndent > 0) logIndent--;
+            if(logIndent > 0) logIndent--;
         }
 
-        public ConditionalBranchState BranchState
-        {
-            get { return branchState; }
-        }
+        public ConditionalBranchState BranchState { get; private set; }
 
-        public UInt32 MemoryAddress
-        {
-            get { return MemoryAccessAddress; }
-        }
+        public UInt32 MemoryAddress { get; private set; }
 
-        public bool stepOver
-        {
-            get { return stepOverPossible; }
-        }
+        public bool stepOver { get; private set; }
 
-        private bool breakpointNext;
+        public bool BreakpointNext { get; set; }
 
-        public bool BreakpointNext
-        {
-            get { return breakpointNext; }
-            set { breakpointNext = value; }
-        }
-
-        private UInt32 PHitAddress;
-
-        public UInt32 hitAddress
-        {
-            get { return PHitAddress; }
-        }
+        public UInt32 hitAddress { get; private set; }
 
         private UInt32[] changableRegs;
 
-        private BreakpointConditions PConditions;
-
-        public BreakpointConditions conditions
-        {
-            get { return PConditions; }
-        }
+        public BreakpointConditions conditions { get; private set; }
 
         private event BreakpointStop PBPStop;
 
@@ -431,8 +406,14 @@ namespace GeckoApp
             }
         }
 
-        public Breakpoints(TCPGecko UGecko, BPList UBPOut, MainForm UMainForm, Disassembly UDissAss,
-            TextBox UDissBox, TextBox UClassicBox, ListBox conditionList, ExceptionHandler UExcHandler)
+        public Breakpoints(TCPGecko UGecko,
+                           BPList UBPOut,
+                           MainForm UMainForm,
+                           Disassembly UDissAss,
+                           TextBox UDissBox,
+                           TextBox UClassicBox,
+                           ListBox conditionList,
+                           ExceptionHandler UExcHandler)
         {
             exceptionHandling = UExcHandler;
             gecko = UGecko;
@@ -442,15 +423,15 @@ namespace GeckoApp
             disassembler = UDissAss;
             dissBox = UDissBox;
             classicBox = UClassicBox;
-            stepOverPossible = false;
+            stepOver = false;
 
             changableRegs = new UInt32[40];
 
             regDialog = new RegisterDialog();
 
-            PConditions = new BreakpointConditions(conditionList);
+            conditions = new BreakpointConditions(conditionList);
 
-            for (int i = 0; i < 40; i++)
+            for(int i = 0; i < 40; i++)
             {
                 bpOutput.shortRegTextBox[i].Click += clickReg;
             }
@@ -461,7 +442,7 @@ namespace GeckoApp
         private void SendRegisters()
         {
             MemoryStream ms = new MemoryStream();
-            for (int i = 0; i < 40; i++)
+            for(int i = 0; i < 40; i++)
             {
                 GlobalFunctions.WriteStream(ms, changableRegs[i]);
             }
@@ -471,8 +452,7 @@ namespace GeckoApp
                 ms.Close();
 
                 GetRegisters();
-            }
-            catch (ETCPGeckoException e)
+            } catch(ETCPGeckoException e)
             {
                 exceptionHandling.HandleException(e);
             }
@@ -482,16 +462,15 @@ namespace GeckoApp
         {
             try
             {
-                if (contextAddress == 0)
+                if(contextAddress == 0)
                     return;
-            }
-            catch (ETCPGeckoException ex)
+            } catch(ETCPGeckoException ex)
             {
                 exceptionHandling.HandleException(ex);
                 return;
             }
 
-            if (!listSet)
+            if(!listSet)
                 return;
 
             int tag = int.Parse(((Control)sender).Tag.ToString());
@@ -500,7 +479,7 @@ namespace GeckoApp
 
             regDialog.TopMost = mainForm.TopMost;
 
-            if (regDialog.SetRegister(bpOutput.shortRegNames[tag], ref value))
+            if(regDialog.SetRegister(bpOutput.shortRegNames[tag], ref value))
             {
                 changableRegs[tag] = value;
                 SendRegisters();
@@ -514,8 +493,7 @@ namespace GeckoApp
             {
                 gecko.GetRegisters(regStream, contextAddress);
                 GetRegisters(regStream);
-            }
-            catch (ETCPGeckoException e)
+            } catch(ETCPGeckoException e)
             {
                 regStream.Close();
                 exceptionHandling.HandleException(e);
@@ -528,25 +506,24 @@ namespace GeckoApp
             String regValue;
             UInt32 rStream;
             UInt32[] allReg = new UInt32[72];
-            for (int i = 0; i < 72; i++)
+            for(int i = 0; i < 72; i++)
             {
                 rStream = GlobalFunctions.ReadStream(regStream);
 
-                if (i < 40)
+                if(i < 40)
                 {
                     changableRegs[i] = rStream;
                 }
                 allReg[i] = rStream;
 
-                if (i < 40 || ShowFloatsInHex)
+                if(i < 40 || ShowFloatsInHex)
                 {
                     regValue = GlobalFunctions.toHex(rStream);
-                }
-                else
+                } else
                 {
                     regValue = GlobalFunctions.UIntToSingle(rStream).ToString("G8");
                 }
-                if (i > 40)
+                if(i > 40)
                     GlobalFunctions.ReadStream(regStream);
                 bpOutput.longRegTextBox[i].Text = regValue;
             }
@@ -554,29 +531,30 @@ namespace GeckoApp
             regStream.Close();
 
             String output = string.Empty;
-            for (int i = 0; i < 72; i++)
+            for(int i = 0; i < 72; i++)
             {
-                output += BPList.longRegNames[bpOutput.longRegIDs[i]] + ":" +
-                        GlobalFunctions.toHex(allReg[bpOutput.longRegIDs[i]]);
-                if (i % 4 == 3 && i != 71)
+                output += BPList.longRegNames[bpOutput.longRegIDs[i]] +
+                    ":" +
+                    GlobalFunctions.toHex(allReg[bpOutput.longRegIDs[i]]);
+                if(i % 4 == 3 && i != 71)
                     output += "\r\n";
-                else if (i % 4 != 3)
+                else if(i % 4 != 3)
                     output += " ";
 
-                if (i == 39)
+                if(i == 39)
                     output += "\r\n";
             }
 
             InvokeClassicTextBoxUpdate(output);
 
-            if (ValidMemory.validAddress(changableRegs[5]))
+            if(ValidMemory.validAddress(changableRegs[5]))
             {
                 UInt32 assAdd = changableRegs[5];
-                PHitAddress = assAdd;
+                hitAddress = assAdd;
 
                 String[] assembly = disassembler.DissToBox(assAdd);
 
-                if (assembly.Length > 0)
+                if(assembly.Length > 0)
                 {
                     String fCommand = assembly[0];
                     currentInstructionAndAddress = fCommand;
@@ -586,7 +564,7 @@ namespace GeckoApp
                     currentInstruction = sep;
                     fCommand = sep[0].ToLower();
 
-                    stepOverPossible = (fCommand == "bl" || fCommand == "bctrl");
+                    stepOver = (fCommand == "bl" || fCommand == "bctrl");
 
                     GetMemoryAddress(sep);
 
@@ -599,15 +577,14 @@ namespace GeckoApp
 
         private void InvokeDissBoxUpdate(String[] assembly)
         {
-            if (mainForm.InvokeRequired)
+            if(mainForm.InvokeRequired)
             {
                 mainForm.Invoke((MethodInvoker)delegate
                 {
                     dissBox.Lines = assembly;
                     mainForm.ScrollBPDissToLine(3);
                 });
-            }
-            else
+            } else
             {
                 dissBox.Lines = assembly;
                 mainForm.ScrollBPDissToLine(3);
@@ -616,14 +593,13 @@ namespace GeckoApp
 
         private void InvokeClassicTextBoxUpdate(String output)
         {
-            if (classicBox.InvokeRequired)
+            if(classicBox.InvokeRequired)
             {
                 classicBox.Invoke((MethodInvoker)delegate
                 {
                     classicBox.Text = output;
                 });
-            }
-            else
+            } else
             {
                 classicBox.Text = output;
             }
@@ -631,41 +607,52 @@ namespace GeckoApp
 
         private void UpdateBranchState(String[] sep)
         {
-            if (isConditionalBranch(sep))
+            if(isConditionalBranch(sep))
             {
-                if (BranchTaken(sep))
+                if(BranchTaken(sep))
                 {
-                    branchState = ConditionalBranchState.Taken;
-                }
-                else
+                    BranchState = ConditionalBranchState.Taken;
+                } else
                 {
-                    branchState = ConditionalBranchState.NotTaken;
+                    BranchState = ConditionalBranchState.NotTaken;
                 }
-            }
-            else
+            } else
             {
-                branchState = ConditionalBranchState.NotConditional;
+                BranchState = ConditionalBranchState.NotConditional;
             }
         }
 
         public void BranchToggle()
         {
-            if (currentInstruction.Length == 1) return;
+            if(currentInstruction.Length == 1) return;
 
             bool taken = BranchTaken(currentInstruction);
 
             string branchCommand = currentInstruction[0].ToLower().Trim(new char[2] { '+', '-' });
 
             uint CR = changableRegs[0];
-            switch (branchCommand)
+            switch(branchCommand)
             {
-                case "ble": CR = taken ? (CR & (~0xA0000000)) : (CR | 0xA0000000); break;
-                case "blt": CR = taken ? (CR & (~0x80000000)) : (CR | 0x80000000); break;
-                case "bge": CR = taken ? (CR & (~(uint)0x60000000)) : (CR | 0x60000000); break;
-                case "bgt": CR = taken ? (CR & (~(uint)0x40000000)) : (CR | 0x40000000); break;
-                case "beq": CR = taken ? (CR & (~(uint)0x20000000)) : (CR | 0x20000000); break;
-                case "bne": CR = taken ? (CR | 0x20000000) : (CR & (~(uint)0x20000000)); break;
-                default: break;
+                case "ble":
+                    CR = taken ? (CR & (~0xA0000000)) : (CR | 0xA0000000);
+                    break;
+                case "blt":
+                    CR = taken ? (CR & (~0x80000000)) : (CR | 0x80000000);
+                    break;
+                case "bge":
+                    CR = taken ? (CR & (~(uint)0x60000000)) : (CR | 0x60000000);
+                    break;
+                case "bgt":
+                    CR = taken ? (CR & (~(uint)0x40000000)) : (CR | 0x40000000);
+                    break;
+                case "beq":
+                    CR = taken ? (CR & (~(uint)0x20000000)) : (CR | 0x20000000);
+                    break;
+                case "bne":
+                    CR = taken ? (CR | 0x20000000) : (CR & (~(uint)0x20000000));
+                    break;
+                default:
+                    break;
             }
             changableRegs[0] = CR;
             SendRegisters();
@@ -674,9 +661,9 @@ namespace GeckoApp
 
         private bool BranchTaken(String[] splitted)
         {
-            if (splitted.Length == 1)
+            if(splitted.Length == 1)
             {
-                if (!Regex.Match(splitted[0], "^b..lr").Success)
+                if(!Regex.Match(splitted[0], "^b..lr").Success)
                 {
                     return false;
                 }
@@ -686,27 +673,22 @@ namespace GeckoApp
 
             command = Regex.Replace(command, "lr$", String.Empty);
 
-            if (command == "ble")
+            if(command == "ble")
             {
                 return (changableRegs[0] & 0xA0000000) != 0;
-            }
-            else if (command == "blt")
+            } else if(command == "blt")
             {
                 return (changableRegs[0] & 0x80000000) != 0;
-            }
-            else if (command == "bge")
+            } else if(command == "bge")
             {
                 return (changableRegs[0] & 0x60000000) != 0;
-            }
-            else if (command == "bgt")
+            } else if(command == "bgt")
             {
                 return (changableRegs[0] & 0x40000000) != 0;
-            }
-            else if (command == "beq")
+            } else if(command == "beq")
             {
                 return (changableRegs[0] & 0x20000000) != 0;
-            }
-            else if (command == "bne")
+            } else if(command == "bne")
             {
                 return (changableRegs[0] & 0x20000000) == 0;
             }
@@ -717,7 +699,7 @@ namespace GeckoApp
         private bool isConditionalBranch(String[] splitted)
         {
             string command = splitted[0].ToLower().Trim(new char[2] { '+', '-' });
-            switch (command)
+            switch(command)
             {
                 case "ble":
                 case "blt":
@@ -727,19 +709,20 @@ namespace GeckoApp
                 case "bne":
                     return true;
 
-                default: return false;
+                default:
+                    return false;
             }
         }
 
         private void GetMemoryAddress(String[] splitted)
         {
-            if (splitted.Length == 1) return;
+            if(splitted.Length == 1) return;
             string command = splitted[0].ToLower();
 
             bool indexed = Regex.Match(command, "x$").Success;
             command = Regex.Replace(command, "x$", String.Empty);
             command = Regex.Replace(command, "u$", String.Empty);
-            switch (command)
+            switch(command)
             {
                 case "stw":
                 case "lwz":
@@ -764,23 +747,26 @@ namespace GeckoApp
                 case "lsw":
                 case "stswi":
                 case "lswi":
-                    String[] sep2 = splitted[1].Split(new char[3] { ',', '(', ')' }, StringSplitOptions.RemoveEmptyEntries);
+                    String[] sep2 = splitted[1].Split(new char[3]
+                        { ',', '(', ')' },
+                                                      StringSplitOptions.RemoveEmptyEntries);
                     int offset;
                     uint pointer;
-                    if (indexed)
+                    if(indexed)
                     {
                         offset = (int)(changableRegs[Convert.ToUInt32(sep2[2].Substring(1)) + 7]);
                         pointer = changableRegs[Convert.ToUInt32(sep2[1].Substring(1)) + 7];
-                    }
-                    else
+                    } else
                     {
                         offset = Convert.ToInt32(sep2[1]);
                         pointer = changableRegs[Convert.ToUInt32(sep2[2].Substring(1)) + 7];
                     }
-                    MemoryAccessAddress = (uint)(pointer + offset);
+                    MemoryAddress = (uint)(pointer + offset);
                     break;
 
-                default: MemoryAccessAddress = 0; break;
+                default:
+                    MemoryAddress = 0;
+                    break;
             }
         }
 
@@ -789,22 +775,22 @@ namespace GeckoApp
             BPHit = false;
             try
             {
-                while (!cancelled && !BPHit)
+                while(!cancelled && !BPHit)
                 {
                     Thread.Sleep(100);
-                    if (gecko.BreakpointHit())
+                    if(gecko.BreakpointHit())
                     {
                         BPSet = false;
                         BPHit = true;
                     }
                 }
                 gecko.CancelBreakpoint();
-                if (BPHit)
+                if(BPHit)
                 {
                     MemoryStream regStream = new MemoryStream();
                     gecko.GetRegisters(regStream, contextAddress);
 
-                    if (!conditions.Check(regStream, bpType, bpAddress, gecko))
+                    if(!conditions.Check(regStream, bpType, bpAddress, gecko))
                     {
                         PSkipCount++;
                         InvokeSkip();
@@ -820,14 +806,13 @@ namespace GeckoApp
                     InvokeGetRegisters(regStream);
                 }
 
-                if (PBPStop != null)
+                if(PBPStop != null)
                 {
                     InvokePBPStop();
                 }
-            }
-            catch (ETCPGeckoException e)
+            } catch(ETCPGeckoException e)
             {
-                if (PBPStop != null)
+                if(PBPStop != null)
                 {
                     InvokePBPStop();
                 }
@@ -837,46 +822,43 @@ namespace GeckoApp
 
         private void InvokePBPStop()
         {
-            if (mainForm.InvokeRequired)
+            if(mainForm.InvokeRequired)
             {
                 mainForm.Invoke((MethodInvoker)delegate
                 {
                     PBPStop(BPHit);
                 });
-            }
-            else
+            } else
                 PBPStop(BPHit);
         }
 
         private void InvokeGetRegisters(MemoryStream regStream)
         {
-            if (bpOutput.InvokeRequired)
+            if(bpOutput.InvokeRequired)
             {
                 bpOutput.Invoke((MethodInvoker)delegate
                 {
                     GetRegisters(regStream);
                 });
-            }
-            else
+            } else
                 GetRegisters(regStream);
         }
 
         private void InvokeSkip()
         {
-            if (mainForm.InvokeRequired)
+            if(mainForm.InvokeRequired)
             {
                 mainForm.Invoke((MethodInvoker)delegate
                 {
                     PBPSkip(PSkipCount);
                 });
-            }
-            else
+            } else
                 PBPSkip(PSkipCount);
         }
 
         private void SetActualBP()
         {
-            switch (bpType)
+            switch(bpType)
             {
                 case BreakpointType.Read:
                     gecko.BreakpointR(bpAddress, bpExact);
@@ -914,18 +896,16 @@ namespace GeckoApp
                 PSkipCount = 0;
                 cancelled = false;
                 SetActualBP();
-                if (!bpWait)
+                if(!bpWait)
                     return true;
                 Thread waitThread = new Thread(WaitForBreakpoint);
                 waitThread.Start();
                 return true;
-            }
-            catch (ETCPGeckoException e)
+            } catch(ETCPGeckoException e)
             {
                 exceptionHandling.HandleException(e);
                 return false;
-            }
-            catch
+            } catch
             {
                 return false;
             }
@@ -940,14 +920,13 @@ namespace GeckoApp
         {
             try
             {
-                if (BPSet)
+                if(BPSet)
                 {
                     cancelled = true;
                     gecko.CancelBreakpoint();
                     BPSet = false;
                 }
-            }
-            catch (ETCPGeckoException e)
+            } catch(ETCPGeckoException e)
             {
                 BPSet = false;
                 exceptionHandling.HandleException(e);
@@ -956,11 +935,11 @@ namespace GeckoApp
 
         public bool IsBLR()
         {
-            if (Regex.Match(currentInstruction[0], "^blr$").Success)
+            if(Regex.Match(currentInstruction[0], "^blr$").Success)
             {
                 return true;
             }
-            if (Regex.Match(currentInstruction[0], "^b..lr").Success && BranchTaken(currentInstruction))
+            if(Regex.Match(currentInstruction[0], "^b..lr").Success && BranchTaken(currentInstruction))
             {
                 return true;
             }
@@ -969,7 +948,7 @@ namespace GeckoApp
 
         public bool IsBL()
         {
-            if (Regex.Match(currentInstruction[0], "^bl$|^bctrl$").Success)
+            if(Regex.Match(currentInstruction[0], "^bl$|^bctrl$").Success)
             {
                 return true;
             }
@@ -978,7 +957,7 @@ namespace GeckoApp
 
         public UInt32 GetRegisterValue(int regIndex)
         {
-            if (regIndex >= BPList.longRegNames.Length)
+            if(regIndex >= BPList.longRegNames.Length)
                 return 0;
             uint foo = 0;
             GlobalFunctions.tryToHex(bpOutput.longRegTextBox[regIndex].Text, out foo);
@@ -998,17 +977,16 @@ namespace GeckoApp
             String regDetails;
             MatchCollection getRegDetails;
 
-            if (currentInstructionAndAddress == null) return String.Empty;
+            if(currentInstructionAndAddress == null) return String.Empty;
 
             String[] Padding = DetailedInstruction.Split('\t');
 
-            if (Padding.Length < 3)
+            if(Padding.Length < 3)
             {
                 DetailedInstruction += "        ";
-            }
-            else if (Padding[2].Length < 8)
+            } else if(Padding[2].Length < 8)
             {
-                for (int i = 8 - Padding[2].Length; i > 0; i--)
+                for(int i = 8 - Padding[2].Length; i > 0; i--)
                 {
                     DetailedInstruction += " ";
                 }
@@ -1016,17 +994,17 @@ namespace GeckoApp
 
             getRegDetails = Regex.Matches(DetailedInstruction, "lr");
 
-            for (int i = 0; i < getRegDetails.Count; i++)
+            for(int i = 0; i < getRegDetails.Count; i++)
             {
                 regDetails = "LR = " + GlobalFunctions.toHex(GetRegisterValue(39));
                 DetailedInstruction += "\t" + regDetails;
             }
 
-            if (!Regex.Match(DetailedInstruction, "0x").Success)
+            if(!Regex.Match(DetailedInstruction, "0x").Success)
             {
                 getRegDetails = Regex.Matches(DetailedInstruction, "f[0-9]+");
 
-                for (int i = 0; i < getRegDetails.Count; i++)
+                for(int i = 0; i < getRegDetails.Count; i++)
                 {
                     string floatReg = getRegDetails[i].Value;
                     int index = Int32.Parse(floatReg.Substring(1)) + 40;
@@ -1038,20 +1016,25 @@ namespace GeckoApp
 
             getRegDetails = Regex.Matches(DetailedInstruction, "r[0-9]+");
 
-            for (int i = 0; i < getRegDetails.Count; i++)
+            for(int i = 0; i < getRegDetails.Count; i++)
             {
-                regDetails = getRegDetails[i].Value + " = " + GlobalFunctions.toHex(GetRegisterValue(Int32.Parse(getRegDetails[i].Value.Substring(1)) + 7));
+                regDetails = getRegDetails[i].Value +
+                    " = " +
+                    GlobalFunctions.toHex(GetRegisterValue(Int32.Parse(getRegDetails[i].Value.Substring(1)) + 7));
                 DetailedInstruction += "\t" + regDetails;
             }
 
             getRegDetails = Regex.Matches(DetailedInstruction, "\\(r[0-9]+\\)");
 
-            for (int i = 0; i < getRegDetails.Count; i++)
+            for(int i = 0; i < getRegDetails.Count; i++)
             {
-                if (ValidMemory.validAddress(MemoryAddress))
+                if(ValidMemory.validAddress(MemoryAddress))
                 {
-                    regDetails = "[" + GlobalFunctions.toHex(MemoryAddress) + "] = " + GlobalFunctions.toHex(gecko.peek(MemoryAddress));
-                    if (Regex.Match(DetailedInstruction, "lfd|stfd").Success)
+                    regDetails = "[" +
+                        GlobalFunctions.toHex(MemoryAddress) +
+                        "] = " +
+                        GlobalFunctions.toHex(gecko.peek(MemoryAddress));
+                    if(Regex.Match(DetailedInstruction, "lfd|stfd").Success)
                     {
                         regDetails += GlobalFunctions.toHex(gecko.peek(MemoryAddress + 4));
                     }
@@ -1059,30 +1042,31 @@ namespace GeckoApp
                 }
             }
 
-            if ((isConditionalBranch(currentInstruction) && BranchTaken(currentInstruction)) || currentInstruction[0] == "b")
+            if((isConditionalBranch(currentInstruction) && BranchTaken(currentInstruction)) ||
+                currentInstruction[0] == "b")
             {
                 DetailedInstruction += "\r\n";
-                for (int i = 0; i < logIndent; i++)
+                for(int i = 0; i < logIndent; i++)
                 {
                     DetailedInstruction += "|  ";
                 }
                 DetailedInstruction += "\t...\t...\t...\t...";
             }
 
-            if (logIndent > 0)
+            if(logIndent > 0)
             {
-                for (int i = 0; i < logIndent; i++)
+                for(int i = 0; i < logIndent; i++)
                 {
                     DetailedInstruction = DetailedInstruction.Insert(0, "|  ");
                 }
             }
 
-            if (IsBL())
+            if(IsBL())
             {
                 logIndent++;
             }
 
-            if (logIndent > 0 && IsBLR())
+            if(logIndent > 0 && IsBLR())
             {
                 logIndent--;
             }
@@ -1092,9 +1076,9 @@ namespace GeckoApp
 
         public void SetSRR0(UInt32 address)
         {
-            if (contextAddress == 0)
+            if(contextAddress == 0)
                 return;
-            if (ValidMemory.rangeCheck(address) != AddressType.Ex)
+            if(ValidMemory.rangeCheck(address) != AddressType.Ex)
                 return;
 
             changableRegs[BPList.regTextToID("SRR0")] = address;

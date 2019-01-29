@@ -7,7 +7,6 @@ namespace GeckoApp
     {
         private object[] RAMWriteCollection;
         private object[] IfThenCollection;
-        private object[] BasePointerCollection;
         private int indexToSelect;
 
         private CodeController GCTCodeContents;
@@ -20,49 +19,44 @@ namespace GeckoApp
             }
             set
             {
-                if (value <= GCTCodeContents.Count && value >= 0)
+                if(value <= GCTCodeContents.Count && value >= 0)
                     comboBoxCodeName.SelectedIndex = value;
             }
         }
 
-        public object[] BasePointerCollection1 { get => BasePointerCollection; set => BasePointerCollection = value; }
+        public object[] BasePointerCollection1 { get; set; }
 
         public GCTWizard(CodeController codeController)
         {
             InitializeComponent();
-            RAMWriteCollection = new String[] {
+            RAMWriteCollection = new String[]
+            {
                 "Write",
-                "Fill" };
-            IfThenCollection = new String[] {
+                "Fill"
+            };
+            IfThenCollection = new String[]
+            {
                 "equal",
                 "not equal",
                 "greater",
-                "lesser" };
-            //BasePointerCollection = new String[] {
-            //    "Load into",
-            //    "Set to",
-            //    "Save to",
-            //    "Load Code Address", };
-
+                "lesser"
+            };
             GCTCodeContents = codeController;
         }
 
         private void comboBoxCodeType_SelectedIndexChanged(object sender, EventArgs e)
         {
-            switch (comboBoxCodeType.SelectedIndex)
+            switch(comboBoxCodeType.SelectedIndex)
             {
                 case 0:
                     comboBoxCodeSubType.Items.Clear();
                     comboBoxCodeSubType.Items.AddRange(RAMWriteCollection);
                     break;
+
                 case 1:
                     comboBoxCodeSubType.Items.Clear();
                     comboBoxCodeSubType.Items.AddRange(IfThenCollection);
                     break;
-                //case 2:
-                //    comboBoxCodeSubType.Items.Clear();
-                //    comboBoxCodeSubType.Items.AddRange(BasePointerCollection);
-                //    break;
                 default:
                     comboBoxCodeSubType.Items.Clear();
                     comboBoxCodeSubType.Items.AddRange(RAMWriteCollection);
@@ -73,19 +67,15 @@ namespace GeckoApp
 
         public void PrepareGCTWizard(int selectedCodeIndex)
         {
-            // Select the correct code type
             comboBoxCodeType.SelectedIndex = 0;
 
-            // Populate the code name drop down
             comboBoxCodeName.Items.Clear();
-            for (int i = 0; i < GCTCodeContents.Count; i++)
+            for(int i = 0; i < GCTCodeContents.Count; i++)
             {
                 comboBoxCodeName.Items.Add(GCTCodeContents.GetCodeName(i));
             }
             comboBoxCodeName.Items.Add("New Code");
             indexToSelect = selectedCodeIndex;
-            //GCTCodeContents.SelectedIndex;
-            //comboBoxCodeName.SelectedIndex = 0;
         }
 
         private void GCTWizard_Shown(object sender, EventArgs e)
@@ -96,16 +86,15 @@ namespace GeckoApp
         private void comboBoxCodeName_SelectedIndexChanged(object sender, EventArgs e)
         {
             int index = SelectedCodeNameIndex;
-            if (comboBoxCodeName.SelectedIndex != index)
+            if(comboBoxCodeName.SelectedIndex != index)
             {
                 comboBoxCodeName.SelectedIndex = index;
             }
 
-            if (comboBoxCodeName.SelectedIndex == comboBoxCodeName.Items.Count - 1)
+            if(comboBoxCodeName.SelectedIndex == comboBoxCodeName.Items.Count - 1)
             {
                 textBoxCodeEntries.Text = String.Empty;
-            }
-            else
+            } else
             {
                 textBoxCodeEntries.Text = CodeController.CodeContentToCodeTextBox(GCTCodeContents[comboBoxCodeName.SelectedIndex]);
             }
@@ -119,8 +108,7 @@ namespace GeckoApp
 
         private bool ValidUserAddress(out UInt32 address)
         {
-            // Is it a valid 32-bit hexadecimal address?
-            if (!GlobalFunctions.tryToHex(textBoxAddress.Text, out address) ||
+            if(!GlobalFunctions.tryToHex(textBoxAddress.Text, out address) ||
                 !ValidMemory.validAddress(address))
             {
                 MessageBox.Show("Invalid address");
@@ -129,15 +117,13 @@ namespace GeckoApp
                 return false;
             }
 
-            // Check alignment
-            if (radioButton16Bit.Checked && ((address & 1) != 0))
+            if(radioButton16Bit.Checked && ((address & 1) != 0))
             {
                 MessageBox.Show("address must be multiple of 2");
                 textBoxAddress.Focus();
                 textBoxAddress.SelectAll();
                 return false;
-            }
-            else if (radioButton32Bit.Checked && ((address & 3) != 0))
+            } else if(radioButton32Bit.Checked && ((address & 3) != 0))
             {
                 MessageBox.Show("address must be multiple of 4");
                 textBoxAddress.Focus();
@@ -150,7 +136,7 @@ namespace GeckoApp
 
         private bool ValidUserValue(out UInt32 value)
         {
-            if (!GlobalFunctions.tryToHex(textBoxValue.Text, out value))
+            if(!GlobalFunctions.tryToHex(textBoxValue.Text, out value))
             {
                 MessageBox.Show("Invalid value");
                 textBoxValue.Focus();
@@ -158,15 +144,13 @@ namespace GeckoApp
                 return false;
             }
 
-            // Check size
-            if (radioButton16Bit.Checked && value > 0xFFFF)
+            if(radioButton16Bit.Checked && value > 0xFFFF)
             {
                 MessageBox.Show("value must be <= FFFF");
                 textBoxValue.Focus();
                 textBoxValue.SelectAll();
                 return false;
-            }
-            else if (radioButton8Bit.Checked && value > 0xFF)
+            } else if(radioButton8Bit.Checked && value > 0xFF)
             {
                 MessageBox.Show("value must be <= FF");
                 textBoxValue.Focus();
@@ -179,14 +163,13 @@ namespace GeckoApp
 
         private bool ValidUserMask(out UInt32 mask)
         {
-            if (radioButton32Bit.Checked)
+            if(radioButton32Bit.Checked)
             {
-                // Mask is unused by 32-bit if
                 mask = 0;
                 return true;
             }
 
-            if (!GlobalFunctions.tryToHex(textBoxMask.Text, out mask))
+            if(!GlobalFunctions.tryToHex(textBoxMask.Text, out mask))
             {
                 MessageBox.Show("Invalid mask");
                 textBoxMask.Focus();
@@ -194,7 +177,7 @@ namespace GeckoApp
                 return false;
             }
 
-            if (mask > 0xFFFF)
+            if(mask > 0xFFFF)
             {
                 MessageBox.Show("mask must be <= FFFF");
                 textBoxMask.Focus();
@@ -207,21 +190,19 @@ namespace GeckoApp
 
         private bool ValidUserFill(out UInt32 fill)
         {
-            if (radioButton32Bit.Checked)
+            if(radioButton32Bit.Checked)
             {
-                // fill is unused by 32-bit if
                 fill = 0;
                 return true;
             }
 
-            if (comboBoxCodeSubType.SelectedIndex == 0)
+            if(comboBoxCodeSubType.SelectedIndex == 0)
             {
-                // "Write" sub-type is a fill of 0!
                 fill = 0;
                 return true;
             }
 
-            if (!GlobalFunctions.tryToHex(textBoxFill.Text, out fill))
+            if(!GlobalFunctions.tryToHex(textBoxFill.Text, out fill))
             {
                 MessageBox.Show("Invalid fill");
                 textBoxFill.Focus();
@@ -229,7 +210,7 @@ namespace GeckoApp
                 return false;
             }
 
-            if (fill > 0xFFFF)
+            if(fill > 0xFFFF)
             {
                 MessageBox.Show("fill must be <= FFFF");
                 textBoxFill.Focus();
@@ -242,34 +223,29 @@ namespace GeckoApp
 
         private void AddCodeRAMWrite()
         {
-            // Validate user inputs
             UInt32 address, value, fill;
 
             bool addFill = comboBoxCodeSubType.SelectedIndex == 1;
 
-            if (!ValidUserAddress(out address)) return;
+            if(!ValidUserAddress(out address)) return;
 
-            if (!ValidUserValue(out value)) return;
+            if(!ValidUserValue(out value)) return;
 
-            if (!ValidUserFill(out fill)) return;
+            if(!ValidUserFill(out fill)) return;
 
             UInt32 add;
 
-            // Get the size
-            if (radioButton8Bit.Checked)
+            if(radioButton8Bit.Checked)
             {
-                // fill will be 0 if there is no fill to use
                 value |= (fill << 16);
 
                 add = 0x00000000;
-            }
-            else if (radioButton16Bit.Checked)
+            } else if(radioButton16Bit.Checked)
             {
                 value |= (fill << 16);
 
                 add = 0x02000000;
-            }
-            else
+            } else
             {
                 add = 0x04000000;
             }
@@ -279,53 +255,44 @@ namespace GeckoApp
 
         private void AddCodeIfThen()
         {
-            // Validate user inputs
             UInt32 address, value, mask;
 
-            if (!ValidUserAddress(out address)) return;
+            if(!ValidUserAddress(out address)) return;
 
-            if (!ValidUserValue(out value)) return;
+            if(!ValidUserValue(out value)) return;
 
-            if (!ValidUserMask(out mask)) return;
+            if(!ValidUserMask(out mask)) return;
 
             UInt32 add;
 
-            // Get the size
-            if (radioButton8Bit.Checked)
+            if(radioButton8Bit.Checked)
             {
                 MessageBox.Show("Can't do 8-bit if");
                 return;
-            }
-            else if (radioButton16Bit.Checked)
+            } else if(radioButton16Bit.Checked)
             {
                 add = 0x28000000;
                 value = (mask << 16) | value;
-            }
-            else
+            } else
             {
                 add = 0x20000000;
             }
 
-            // Get the type of comparison
-            if (comboBoxCodeSubType.SelectedIndex == 0)    // equals
+            if(comboBoxCodeSubType.SelectedIndex == 0)
             {
                 add += 0;
-            }
-            else if (comboBoxCodeSubType.SelectedIndex == 1)    // not equals
+            } else if(comboBoxCodeSubType.SelectedIndex == 1)
             {
                 add += 0x02000000;
-            }
-            else if (comboBoxCodeSubType.SelectedIndex == 2)    // greater
+            } else if(comboBoxCodeSubType.SelectedIndex == 2)
             {
                 add += 0x04000000;
-            }
-            else if (comboBoxCodeSubType.SelectedIndex == 3)    // lesser
+            } else if(comboBoxCodeSubType.SelectedIndex == 3)
             {
                 add += 0x06000000;
             }
 
-            // End if?
-            if (checkBoxEndIf.Checked)
+            if(checkBoxEndIf.Checked)
             {
                 add += 0x00000001;
             }
@@ -336,49 +303,39 @@ namespace GeckoApp
         private void StandardCodeAddressStuff(UInt32 address, UInt32 value, UInt32 add)
         {
             CodeContent nCode = CodeController.CodeTextBoxToCodeContent(textBoxCodeEntries.Text);
-            //UInt32 cAddressR = 0x80000000;
             UInt32 rAddressR;
             UInt32 offset;
 
-            // base address is masked differently than pointer offset
-            if (radioButtonBA.Checked)
+            if(radioButtonBA.Checked)
             {
                 rAddressR = address & 0xFE000000;
-            }
-            else
+            } else
             {
-                // TODO the po doesn't actually have this restriction
-                // but for now we keep it like the ba
-                //rAddressR = address & 0xFEFFFFFF;
                 rAddressR = address & 0xFE000000;
                 add += 0x10000000;
             }
 
-            // Do we need to change the ba or po?
             bool changeBAorPO = false;
-            if ((address & 0xFE000000) != 0x80000000)
+            if((address & 0xFE000000) != 0x80000000)
             {
                 changeBAorPO = true;
             }
 
-            if (changeBAorPO)
+            if(changeBAorPO)
             {
-                if (radioButtonBA.Checked)
+                if(radioButtonBA.Checked)
                 {
                     nCode.addLine(0x42000000, rAddressR);
-                }
-                else
+                } else
                 {
                     nCode.addLine(0x4A000000, rAddressR);
                 }
             }
 
-            // Add the actual code
             offset = address - rAddressR + add;
             nCode.addLine(offset, value);
 
-            // Add terminator if necessary
-            if (changeBAorPO)
+            if(changeBAorPO)
             {
                 nCode.addLine(0xE0000000, 0x80008000);
             }
@@ -388,11 +345,17 @@ namespace GeckoApp
 
         private void buttonAddCode_Click(object sender, EventArgs e)
         {
-            switch (comboBoxCodeType.SelectedIndex)
+            switch(comboBoxCodeType.SelectedIndex)
             {
-                case 0: AddCodeRAMWrite(); break;
-                case 1: AddCodeIfThen(); break;
-                default: AddCodeRAMWrite(); break;
+                case 0:
+                    AddCodeRAMWrite();
+                    break;
+                case 1:
+                    AddCodeIfThen();
+                    break;
+                default:
+                    AddCodeRAMWrite();
+                    break;
             }
         }
 
@@ -404,20 +367,16 @@ namespace GeckoApp
 
         private void comboBoxCodeName_KeyDown(object sender, KeyEventArgs e)
         {
-            // If the user hits enter...
-            if (e.KeyCode == Keys.Enter)
+            if(e.KeyCode == Keys.Enter)
             {
                 CheckNewCodeName();
             }
         }
 
-
         private void CheckNewCodeName()
         {
-            // And the current text does not exist as a code name...
-            if (comboBoxCodeName.FindStringExact(comboBoxCodeName.Text) == -1)
+            if(comboBoxCodeName.FindStringExact(comboBoxCodeName.Text) == -1)
             {
-                // Add a new entry
                 GCTCodeContents.AddCode(comboBoxCodeName.Text);
                 comboBoxCodeName.Items.Remove("New Code");
                 comboBoxCodeName.Items.Add(comboBoxCodeName.Text);
@@ -435,6 +394,5 @@ namespace GeckoApp
             DialogResult = DialogResult.OK;
             Hide();
         }
-
     }
 }

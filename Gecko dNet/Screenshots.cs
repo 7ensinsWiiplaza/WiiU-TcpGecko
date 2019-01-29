@@ -28,7 +28,7 @@ namespace GeckoApp
                 ImageCodecInfo.GetImageDecoders();
 
             String expectedMime;
-            switch (format)
+            switch(format)
             {
                 case ScreenshotFormat.BMP:
                     expectedMime = "image/bmp";
@@ -48,9 +48,9 @@ namespace GeckoApp
             }
 
             ImageCodecInfo result = null;
-            for (int i = 0; i < formats.Length; i++)
+            for(int i = 0; i < formats.Length; i++)
             {
-                if (formats[i].MimeType.ToLower() == expectedMime)
+                if(formats[i].MimeType.ToLower() == expectedMime)
                 {
                     result = formats[i];
                     break;
@@ -63,7 +63,7 @@ namespace GeckoApp
         public static EncoderParameters getParameters(int jpegQuality, ScreenshotFormat format)
         {
             EncoderParameters result;
-            switch (format)
+            switch(format)
             {
                 case ScreenshotFormat.BMP:
                     result = new EncoderParameters(1);
@@ -95,31 +95,30 @@ namespace GeckoApp
 
         public static Image resizeImage(Image imgToResize, ScreenshotSizingMode sizing)
         {
-            if (sizing == ScreenshotSizingMode.None)
+            if(sizing == ScreenshotSizingMode.None)
                 return imgToResize;
 
             int cWidth = imgToResize.Width;
             int cHeight = imgToResize.Height;
 
             double resize;
-            if (sizing == ScreenshotSizingMode.StretchToFullscreen)
+            if(sizing == ScreenshotSizingMode.StretchToFullscreen)
                 resize = 4.0 / 3.0;
             else
                 resize = 16.0 / 9.0;
 
             double pictureAspect = (double)cWidth / (double)cHeight;
 
-            if (pictureAspect <= resize * 1.02 && pictureAspect >= resize * 0.98)
+            if(pictureAspect <= resize * 1.02 && pictureAspect >= resize * 0.98)
                 return imgToResize;
 
             int nWidth, nHeight;
 
-            if (resize > pictureAspect)
+            if(resize > pictureAspect)
             {
                 nHeight = cHeight;
                 nWidth = (int)Math.Round((double)cHeight * resize);
-            }
-            else
+            } else
             {
                 nWidth = cWidth;
                 nHeight = (int)Math.Round((double)cWidth / resize);

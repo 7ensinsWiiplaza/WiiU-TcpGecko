@@ -1,8 +1,9 @@
 ﻿using System;
 using System.IO;
 using System.Net.Sockets;
+using System.Threading;
 
-namespace TCPTCPGecko
+namespace GeckoApp
 {
     internal class tcpconn
     {
@@ -10,6 +11,7 @@ namespace TCPTCPGecko
         private NetworkStream stream;
 
         public string Host { get; private set; }
+
         public int Port { get; private set; }
 
         public tcpconn(string host, int port)
@@ -25,23 +27,23 @@ namespace TCPTCPGecko
             try
             {
                 Close();
+            } catch(Exception)
+            {
             }
-            catch (Exception) { }
             client = new TcpClient();
             client.NoDelay = true;
             IAsyncResult ar = client.BeginConnect(Host, Port, null, null);
-            System.Threading.WaitHandle wh = ar.AsyncWaitHandle;
+            WaitHandle wh = ar.AsyncWaitHandle;
             try
             {
-                if (!ar.AsyncWaitHandle.WaitOne(TimeSpan.FromSeconds(5), false))
+                if(!ar.AsyncWaitHandle.WaitOne(TimeSpan.FromSeconds(5), false))
                 {
                     client.Close();
                     throw new IOException("Connection timoeut.", new TimeoutException());
                 }
 
                 client.EndConnect(ar);
-            }
-            finally
+            } finally
             {
                 wh.Close();
             }
@@ -54,14 +56,14 @@ namespace TCPTCPGecko
         {
             try
             {
-                if (client == null)
+                if(client == null)
                 {
                     throw new IOException("Not connected.", new NullReferenceException());
                 }
                 client.Close();
-            }
-            catch (Exception) { }
-            finally
+            } catch(Exception)
+            {
+            } finally
             {
                 client = null;
             }
@@ -69,7 +71,7 @@ namespace TCPTCPGecko
 
         public void Purge()
         {
-            if (stream == null)
+            if(stream == null)
             {
                 throw new IOException("Not connected.", new NullReferenceException());
             }
@@ -81,27 +83,25 @@ namespace TCPTCPGecko
             try
             {
                 int offset = 0;
-                if (stream == null)
+                if(stream == null)
                 {
                     throw new IOException("Not connected.", new NullReferenceException());
                 }
                 bytes_read = 0;
-                while (nobytes > 0)
+                while(nobytes > 0)
                 {
                     int read = stream.Read(buffer, offset, (int)nobytes);
-                    if (read >= 0)
+                    if(read >= 0)
                     {
                         bytes_read += (uint)read;
                         offset += read;
                         nobytes -= (uint)read;
-                    }
-                    else
+                    } else
                     {
                         break;
                     }
                 }
-            }
-            catch (ObjectDisposedException e)
+            } catch(ObjectDisposedException e)
             {
                 throw new IOException("Connection closed.", e);
             }
@@ -111,18 +111,17 @@ namespace TCPTCPGecko
         {
             try
             {
-                if (stream == null)
+                if(stream == null)
                 {
                     throw new IOException("Not connected.", new NullReferenceException());
                 }
                 stream.Write(buffer, 0, nobytes);
-                if (nobytes >= 0)
+                if(nobytes >= 0)
                     bytes_written = (uint)nobytes;
                 else
                     bytes_written = 0;
                 stream.Flush();
-            }
-            catch (ObjectDisposedException e)
+            } catch(ObjectDisposedException e)
             {
                 throw new IOException("Connection closed.", e);
             }

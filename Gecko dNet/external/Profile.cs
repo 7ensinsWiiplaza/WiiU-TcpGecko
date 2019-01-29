@@ -1,33 +1,3 @@
-/*
- * AMS.Profile Class Library
- *
- * Written by Alvaro Mendez
- * Copyright (c) 2005. All Rights Reserved.
- *
- * The AMS.Profile namespace contains interfaces and classes that
- * allow reading and writing of user-profile data.
- * This file contains the Profile class.
- *
- * The code is thoroughly documented, however, if you have any questions,
- * feel free to email me at alvaromendez@consultant.com.  Also, if you
- * decide to this in a commercial application I would appreciate an email
- * message letting me know.
- *
- * This code may be used in compiled form in any way you desire. This
- * file may be redistributed unmodified by any means providing it is
- * not sold for profit without the authors written consent, and
- * providing that this notice and the authors name and all copyright
- * notices remains intact. This file and the accompanying source code
- * may not be hosted on a website or bulletin board without the author's
- * written permission.
- *
- * This file is provided "as is" with no expressed or implied warranty.
- * The author accepts no liability for any damage/loss of business that
- * this product may cause.
- *
- * Last Updated: Feb. 15, 2005
- */
-
 using System;
 using System.Data;
 
@@ -41,7 +11,6 @@ namespace AMS.Profile
     ///   derived classes don't have to. </remarks>
     public abstract class Profile : IProfile
     {
-        // Fields
         private string m_name;
 
         private bool m_readOnly;
@@ -106,10 +75,10 @@ namespace AMS.Profile
             set
             {
                 VerifyNotReadOnly();
-                if (m_name == value.Trim())
+                if(m_name == value.Trim())
                     return;
 
-                if (!RaiseChangeEvent(true, ProfileChangeType.Name, null, null, value))
+                if(!RaiseChangeEvent(true, ProfileChangeType.Name, null, null, value))
                     return;
 
                 m_name = value.Trim();
@@ -142,10 +111,10 @@ namespace AMS.Profile
             set
             {
                 VerifyNotReadOnly();
-                if (m_readOnly == value)
+                if(m_readOnly == value)
                     return;
 
-                if (!RaiseChangeEvent(true, ProfileChangeType.ReadOnly, null, null, value))
+                if(!RaiseChangeEvent(true, ProfileChangeType.ReadOnly, null, null, value))
                     return;
 
                 m_readOnly = value;
@@ -261,14 +230,13 @@ namespace AMS.Profile
         public virtual int GetValue(string section, string entry, int defaultValue)
         {
             object value = GetValue(section, entry);
-            if (value == null)
+            if(value == null)
                 return defaultValue;
 
             try
             {
                 return Convert.ToInt32(value);
-            }
-            catch
+            } catch
             {
                 return 0;
             }
@@ -298,14 +266,13 @@ namespace AMS.Profile
         public virtual double GetValue(string section, string entry, double defaultValue)
         {
             object value = GetValue(section, entry);
-            if (value == null)
+            if(value == null)
                 return defaultValue;
 
             try
             {
                 return Convert.ToDouble(value);
-            }
-            catch
+            } catch
             {
                 return 0;
             }
@@ -337,14 +304,13 @@ namespace AMS.Profile
         public virtual bool GetValue(string section, string entry, bool defaultValue)
         {
             object value = GetValue(section, entry);
-            if (value == null)
+            if(value == null)
                 return defaultValue;
 
             try
             {
                 return Convert.ToBoolean(value);
-            }
-            catch
+            } catch
             {
                 return false;
             }
@@ -369,7 +335,7 @@ namespace AMS.Profile
         {
             string[] entries = GetEntryNames(section);
 
-            if (entries == null)
+            if(entries == null)
                 return false;
 
             VerifyAndAdjustEntry(ref entry);
@@ -388,7 +354,7 @@ namespace AMS.Profile
         {
             string[] sections = GetSectionNames();
 
-            if (sections == null)
+            if(sections == null)
                 return false;
 
             VerifyAndAdjustSection(ref section);
@@ -493,23 +459,21 @@ namespace AMS.Profile
             VerifyName();
 
             string[] sections = GetSectionNames();
-            if (sections == null)
+            if(sections == null)
                 return null;
 
             DataSet ds = new DataSet(Name);
 
-            // Add a table for each section
-            foreach (string section in sections)
+            foreach(string section in sections)
             {
                 DataTable table = ds.Tables.Add(section);
 
-                // Retrieve the column names and values
                 string[] entries = GetEntryNames(section);
                 DataColumn[] columns = new DataColumn[entries.Length];
                 object[] values = new object[entries.Length];
 
                 int i = 0;
-                foreach (string entry in entries)
+                foreach(string entry in entries)
                 {
                     object value = GetValue(section, entry);
 
@@ -517,7 +481,6 @@ namespace AMS.Profile
                     values[i++] = value;
                 }
 
-                // Add the columns and values to the table
                 table.Columns.AddRange(columns);
                 table.Rows.Add(values);
             }
@@ -548,19 +511,17 @@ namespace AMS.Profile
         /// <seealso cref="GetDataSet" />
         public virtual void SetDataSet(DataSet ds)
         {
-            if (ds == null)
+            if(ds == null)
                 throw new ArgumentNullException("ds");
 
-            // Create a section for each table
-            foreach (DataTable table in ds.Tables)
+            foreach(DataTable table in ds.Tables)
             {
                 string section = table.TableName;
                 DataRowCollection rows = table.Rows;
-                if (rows.Count == 0)
+                if(rows.Count == 0)
                     continue;
 
-                // Loop through each column and add it as entry with value of the first row
-                foreach (DataColumn column in table.Columns)
+                foreach(DataColumn column in table.Columns)
                 {
                     string entry = column.ColumnName;
                     object value = rows[0][column];
@@ -589,10 +550,9 @@ namespace AMS.Profile
                 {
                     string file = AppDomain.CurrentDomain.SetupInformation.ConfigurationFile;
                     return file.Substring(0, file.LastIndexOf('.'));
-                }
-                catch
+                } catch
                 {
-                    return "profile";  // if all else fails
+                    return "profile";
                 }
             }
         }
@@ -610,7 +570,7 @@ namespace AMS.Profile
         /// <seealso cref="VerifyAndAdjustEntry" />
         protected virtual void VerifyAndAdjustSection(ref string section)
         {
-            if (section == null)
+            if(section == null)
                 throw new ArgumentNullException("section");
 
             section = section.Trim();
@@ -629,7 +589,7 @@ namespace AMS.Profile
         /// <seealso cref="VerifyAndAdjustSection" />
         protected virtual void VerifyAndAdjustEntry(ref string entry)
         {
-            if (entry == null)
+            if(entry == null)
                 throw new ArgumentNullException("entry");
 
             entry = entry.Trim();
@@ -645,7 +605,7 @@ namespace AMS.Profile
         /// <seealso cref="Name" />
         protected internal virtual void VerifyName()
         {
-            if (m_name == null || m_name == string.Empty)
+            if(m_name == null || m_name == string.Empty)
                 throw new InvalidOperationException("Operation not allowed because Name property is null or empty.");
         }
 
@@ -659,7 +619,7 @@ namespace AMS.Profile
         /// <seealso cref="ReadOnly" />
         protected internal virtual void VerifyNotReadOnly()
         {
-            if (m_readOnly)
+            if(m_readOnly)
                 throw new InvalidOperationException("Operation not allowed because ReadOnly property is true.");
         }
 
@@ -687,12 +647,15 @@ namespace AMS.Profile
         /// <seealso cref="Changed" />
         /// <seealso cref="OnChanging" />
         /// <seealso cref="OnChanged" />
-        protected bool RaiseChangeEvent(bool changing, ProfileChangeType changeType, string section, string entry, object value)
+        protected bool RaiseChangeEvent(bool changing,
+                                        ProfileChangeType changeType,
+                                        string section,
+                                        string entry,
+                                        object value)
         {
-            if (changing)
+            if(changing)
             {
-                // Don't even bother if there are no handlers.
-                if (Changing == null)
+                if(Changing == null)
                     return true;
 
                 ProfileChangingArgs e = new ProfileChangingArgs(changeType, section, entry, value);
@@ -700,8 +663,7 @@ namespace AMS.Profile
                 return !e.Cancel;
             }
 
-            // Don't even bother if there are no handlers.
-            if (Changed != null)
+            if(Changed != null)
                 OnChanged(new ProfileChangedArgs(changeType, section, entry, value));
             return true;
         }
@@ -721,15 +683,14 @@ namespace AMS.Profile
         /// <seealso cref="OnChanged" />
         protected virtual void OnChanging(ProfileChangingArgs e)
         {
-            if (Changing == null)
+            if(Changing == null)
                 return;
 
-            foreach (ProfileChangingHandler handler in Changing.GetInvocationList())
+            foreach(ProfileChangingHandler handler in Changing.GetInvocationList())
             {
                 handler(this, e);
 
-                // If a particular handler cancels the event, stop
-                if (e.Cancel)
+                if(e.Cancel)
                     break;
             }
         }
@@ -745,7 +706,7 @@ namespace AMS.Profile
         /// <seealso cref="OnChanging" />
         protected virtual void OnChanged(ProfileChangedArgs e)
         {
-            if (Changed != null)
+            if(Changed != null)
                 Changed(this, e);
         }
 
@@ -781,8 +742,10 @@ namespace AMS.Profile
 
                 SetValue(section, "Text entry", "123 abc");
                 SetValue(section, "Blank entry", string.Empty);
-                SetValue(section, "Null entry", null);  // nothing will be added
-                SetValue(section, "  Entry with leading and trailing spaces  ", "The spaces should be trimmed from the entry");
+                SetValue(section, "Null entry", null);
+                SetValue(section,
+                         "  Entry with leading and trailing spaces  ",
+                         "The spaces should be trimmed from the entry");
                 SetValue(section, "Integer entry", 2 * 8 + 1);
                 SetValue(section, "Long entry", 1234567890123456789);
                 SetValue(section, "Double entry", 2 * 8 + 1.95);
@@ -795,8 +758,7 @@ namespace AMS.Profile
                 {
                     SetValue(section, null, "123 abc");
                     throw new Exception("Passing a null entry was allowed for SetValue");
-                }
-                catch (ArgumentNullException)
+                } catch(ArgumentNullException)
                 {
                 }
 
@@ -806,8 +768,7 @@ namespace AMS.Profile
                 {
                     GetValue(null, "Test");
                     throw new Exception("Passing a null section was allowed for GetValue");
-                }
-                catch (ArgumentNullException)
+                } catch(ArgumentNullException)
                 {
                 }
 
@@ -818,107 +779,109 @@ namespace AMS.Profile
 
                 task = "verifying the number of entries is " + expectedEntries;
 
-                if (entries.Length != expectedEntries)
+                if(entries.Length != expectedEntries)
                     throw new Exception("Incorrect number of entries found: " + entries.Length);
 
                 task = "checking the values for the entries added";
 
                 string strValue = GetValue(section, "Text entry", string.Empty);
-                if (strValue != "123 abc")
+                if(strValue != "123 abc")
                     throw new Exception("Incorrect string value found for the Text entry: '" + strValue + "'");
 
                 int nValue = GetValue(section, "Text entry", 321);
-                if (nValue != 0)
+                if(nValue != 0)
                     throw new Exception("Incorrect integer value found for the Text entry: " + nValue);
 
                 strValue = GetValue(section, "Blank entry", "invalid");
-                if (strValue != string.Empty)
+                if(strValue != string.Empty)
                     throw new Exception("Incorrect string value found for the Blank entry: '" + strValue + "'");
 
                 object value = GetValue(section, "Blank entry");
-                if (value == null)
+                if(value == null)
                     throw new Exception("Incorrect null value found for the Blank entry");
 
                 nValue = GetValue(section, "Blank entry", 321);
-                if (nValue != 0)
+                if(nValue != 0)
                     throw new Exception("Incorrect integer value found for the Blank entry: " + nValue);
 
                 bool bValue = GetValue(section, "Blank entry", true);
-                if (bValue != false)
+                if(bValue != false)
                     throw new Exception("Incorrect bool value found for the Blank entry: " + bValue);
 
                 strValue = GetValue(section, "Null entry", string.Empty);
-                if (strValue != string.Empty)
+                if(strValue != string.Empty)
                     throw new Exception("Incorrect string value found for the Null entry: '" + strValue + "'");
 
                 value = GetValue(section, "Null entry");
-                if (value != null)
+                if(value != null)
                     throw new Exception("Incorrect object value found for the Blank entry: '" + value + "'");
 
                 strValue = GetValue(section, "  Entry with leading and trailing spaces  ", string.Empty);
-                if (strValue != "The spaces should be trimmed from the entry")
-                    throw new Exception("Incorrect string value found for the Entry with leading and trailing spaces: '" + strValue + "'");
+                if(strValue != "The spaces should be trimmed from the entry")
+                    throw new Exception("Incorrect string value found for the Entry with leading and trailing spaces: '" +
+                    strValue +
+                    "'");
 
-                if (!HasEntry(section, "Entry with leading and trailing spaces"))
+                if(!HasEntry(section, "Entry with leading and trailing spaces"))
                     throw new Exception("The Entry with leading and trailing spaces (trimmed) was not found");
 
                 nValue = GetValue(section, "Integer entry", 0);
-                if (nValue != 17)
+                if(nValue != 17)
                     throw new Exception("Incorrect integer value found for the Integer entry: " + nValue);
 
                 double dValue = GetValue(section, "Integer entry", 0.0);
-                if (dValue != 17)
+                if(dValue != 17)
                     throw new Exception("Incorrect double value found for the Integer entry: " + dValue);
 
                 long lValue = Convert.ToInt64(GetValue(section, "Long entry"));
-                if (lValue != 1234567890123456789)
+                if(lValue != 1234567890123456789)
                     throw new Exception("Incorrect long value found for the Long entry: " + lValue);
 
                 strValue = GetValue(section, "Long entry", string.Empty);
-                if (strValue != "1234567890123456789")
+                if(strValue != "1234567890123456789")
                     throw new Exception("Incorrect string value found for the Long entry: '" + strValue + "'");
 
                 dValue = GetValue(section, "Double entry", 0.0);
-                if (dValue != 17.95)
+                if(dValue != 17.95)
                     throw new Exception("Incorrect double value found for the Double entry: " + dValue);
 
                 nValue = GetValue(section, "Double entry", 321);
-                if (nValue != 0)
+                if(nValue != 0)
                     throw new Exception("Incorrect integer value found for the Double entry: " + nValue);
 
                 strValue = GetValue(section, "DateTime entry", string.Empty);
-                if (strValue != DateTime.Today.ToString())
+                if(strValue != DateTime.Today.ToString())
                     throw new Exception("Incorrect string value found for the DateTime entry: '" + strValue + "'");
 
                 DateTime today = DateTime.Parse(strValue);
-                if (today != DateTime.Today)
+                if(today != DateTime.Today)
                     throw new Exception("The DateTime value is not today's date: '" + strValue + "'");
 
                 bValue = GetValue(section, "Boolean entry", !haveSections);
-                if (bValue != haveSections)
+                if(bValue != haveSections)
                     throw new Exception("Incorrect bool value found for the Boolean entry: " + bValue);
 
                 strValue = GetValue(section, "Boolean entry", string.Empty);
-                if (strValue != haveSections.ToString())
+                if(strValue != haveSections.ToString())
                     throw new Exception("Incorrect string value found for the Boolean entry: '" + strValue + "'");
 
                 value = GetValue(section, "Nonexistent entry");
-                if (value != null)
+                if(value != null)
                     throw new Exception("Incorrect value found for the Nonexistent entry: '" + value + "'");
 
                 strValue = GetValue(section, "Nonexistent entry", "Some Default");
-                if (strValue != "Some Default")
+                if(strValue != "Some Default")
                     throw new Exception("Incorrect default value found for the Nonexistent entry: '" + strValue + "'");
 
                 task = "creating a ReadOnly clone of the object";
 
                 IReadOnlyProfile roProfile = CloneReadOnly();
 
-                if (!roProfile.HasSection(section))
+                if(!roProfile.HasSection(section))
                     throw new Exception("The section is missing from the cloned read-only profile");
 
                 dValue = roProfile.GetValue(section, "Double entry", 0.0);
-                if (dValue != 17.95)
+                if(dValue != 17.95)
                     throw new Exception("Incorrect double value in the cloned object: " + dValue);
 
                 task = "checking if ReadOnly clone can be hacked to allow writing";
@@ -927,29 +890,21 @@ namespace AMS.Profile
                 {
                     ((IProfile)roProfile).ReadOnly = false;
                     throw new Exception("Changing of the ReadOnly flag was allowed on the cloned read-only profile");
-                }
-                catch (InvalidOperationException)
+                } catch(InvalidOperationException)
                 {
                 }
 
                 try
                 {
-                    // Test if a read-only profile can be hacked by casting
-                    ((IProfile)roProfile).SetValue(section, "Entry which should not be written", "This should not happen");
+                    ((IProfile)roProfile).SetValue(section,
+                                                   "Entry which should not be written",
+                                                   "This should not happen");
                     throw new Exception("SetValue did not throw an InvalidOperationException when writing to the cloned read-only profile");
-                }
-                catch (InvalidOperationException)
+                } catch(InvalidOperationException)
                 {
                 }
 
-                //	task = "checking the DataSet methods";
-
-                //	DataSet ds = GetDataSet();
-                //	Profile copy = (Profile)Clone();
-                //	copy.Name = Name + "2";
-                //	copy.SetDataSet(ds);
-
-                if (!cleanup)
+                if(!cleanup)
                     return;
 
                 task = "deleting the entries just added";
@@ -971,7 +926,7 @@ namespace AMS.Profile
 
                 entries = GetEntryNames(section);
 
-                if (entries.Length != 0)
+                if(entries.Length != 0)
                     throw new Exception("Incorrect number of entries still found: " + entries.Length);
 
                 task = "deleting the section";
@@ -982,15 +937,14 @@ namespace AMS.Profile
 
                 int sectionCount2 = GetSectionNames().Length;
 
-                if (sectionCount != sectionCount2)
+                if(sectionCount != sectionCount2)
                     throw new Exception("Incorrect number of sections found after deleting: " + sectionCount2);
 
                 entries = GetEntryNames(section);
 
-                if (entries != null)
+                if(entries != null)
                     throw new Exception("The section was apparently not deleted since GetEntryNames did not return null");
-            }
-            catch (Exception ex)
+            } catch(Exception ex)
             {
                 throw new Exception("Test Failed while " + task, ex);
             }

@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Windows.Forms;
 
-using TCPTCPGecko;
-
 namespace GeckoApp
 {
     public enum MemoryViewMode
@@ -26,9 +24,6 @@ namespace GeckoApp
         private TextBox pokeValue;
         private Label fpValue;
         private UInt32 cAddress;
-        private UInt32 selAddress;
-        private MemoryViewMode PViewMode;
-        private bool searching;
         private Stack<UInt32> history = new Stack<uint>(), redo = new Stack<uint>();
 
         private ExceptionHandler exceptionHandling;
@@ -45,46 +40,28 @@ namespace GeckoApp
             set
             {
                 value = value & 0xFFFFFFFC;
-                if (cAddress != value)
+                if(cAddress != value)
                 {
                     history.Push(cAddress);
                     redo.Clear();
                     cAddress = value & 0xFFFFFFFC;
                 }
-                // TODO: handle changing memViewAValue and updating the memory view
-                // so clients can just change the address
             }
         }
 
-        public UInt32 selectedAddress
-        {
-            // TODO: handle changing poke box
-            get
-            {
-                return selAddress;
-            }
-        }
+        public UInt32 selectedAddress { get; private set; }
 
-        public MemoryViewMode viewMode
-        {
-            get
-            {
-                return PViewMode;
-            }
-            set
-            {
-                PViewMode = value;
-            }
-        }
+        public MemoryViewMode viewMode { get; set; }
 
-        public bool Searching
-        {
-            get { return searching; }
-            set { searching = value; }
-        }
+        public bool Searching { get; set; }
 
-        public MemoryViewer(TCPGecko UGecko, UInt32 initAddress, DataGridView UGView,
-            TextBox UPokeAddress, TextBox UPokeValue, Label UFPValue, ExceptionHandler UExpHandler)
+        public MemoryViewer(TCPGecko UGecko,
+                            UInt32 initAddress,
+                            DataGridView UGView,
+                            TextBox UPokeAddress,
+                            TextBox UPokeValue,
+                            Label UFPValue,
+                            ExceptionHandler UExpHandler)
         {
             gecko = UGecko;
             exceptionHandling = UExpHandler;
@@ -98,17 +75,8 @@ namespace GeckoApp
             gView.SelectionChanged += CellSelectionChange;
         }
 
-        private UInt32 ReadStream(Stream input)
-        {
-            Byte[] buffer = new Byte[4];
-            input.Read(buffer, 0, 4);
-            return ByteSwap.Swap(BitConverter.ToUInt32(buffer, 0));
-        }
-
         public void Update()
         {
-            // We can do a slow update by default
-            // But during auto-update we want to be faster
             Update(false);
         }
 
@@ -116,12 +84,11 @@ namespace GeckoApp
         {
             MemoryStream miniDump = new MemoryStream();
             int oldColumnIndex, oldRowIndex;
-            if (gView.SelectedCells.Count > 0)
+            if(gView.SelectedCells.Count > 0)
             {
                 oldColumnIndex = gView.SelectedCells[0].ColumnIndex;
                 oldRowIndex = gView.SelectedCells[0].RowIndex;
-            }
-            else
+            } else
             {
                 oldColumnIndex = 1;
                 oldRowIndex = 1;
@@ -133,10 +100,7 @@ namespace GeckoApp
             {
                 gecko.Dump(sAddress, sAddress + 0x100, miniDump);
 
-                //gView.Rows.Add(16);
-                // Only clear and re-load gView.Rows when it's != 16
-                // This was one thing slowing us down...
-                if (gView.Rows.Count != 16)
+                if(gView.Rows.Count != 16)
                 {
                     gView.Rows.Clear();
                     gView.Rows.Add(16);
@@ -146,70 +110,57 @@ namespace GeckoApp
                 UInt32 value, bValue;
                 Byte[] buffer = new Byte[4];
                 UInt32 pValue = 0;
-                for (int i = 0; i < 16; i++)
+                for(int i = 0; i < 16; i++)
                 {
                     gView.Rows[i].Cells[0].Value = GlobalFunctions.toHex(sAddress + i * 16);
-                    for (int j = 1; j < 5; j++)
+                    for(int j = 1; j < 5; j++)
                     {
                         miniDump.Read(buffer, 0, 4);
                         bValue = BitConverter.ToUInt32(buffer, 0);
                         value = ByteSwap.Swap(bValue);
-                        if (sAddress + i * 0x10 + (j - 1) * 4 == selAddress)
+                        if(sAddress + i * 0x10 + (j - 1) * 4 == selectedAddress)
                             pValue = value;
                         DataGridViewCell cell = gView.Rows[i].Cells[j];
-                        if (PViewMode == MemoryViewMode.Hex)
+                        if(viewMode == MemoryViewMode.Hex)
                         {
                             cell.Value = GlobalFunctions.toHex(value);
-                        }
-                        else if (PViewMode == MemoryViewMode.ASCII)
+                        } else if(viewMode == MemoryViewMode.ASCII)
                         {
                             cell.Value = DecodeASCII(buffer);
-                        }
-                        else if (PViewMode == MemoryViewMode.ANSI)
+                        } else if(viewMode == MemoryViewMode.ANSI)
                         {
                             cell.Value = DecodeANSI(buffer);
-                        }
-                        else if (PViewMode == MemoryViewMode.Unicode)
+                        } else if(viewMode == MemoryViewMode.Unicode)
                         {
                             cell.Value = DecodeUnicode(buffer);
-                        }
-                        else if (PViewMode == MemoryViewMode.Single)
+                        } else if(viewMode == MemoryViewMode.Single)
                         {
                             cell.Value = PrettyFloat(GlobalFunctions.UIntToSingle(value));
-                        }
-                        else if (PViewMode == MemoryViewMode.AutoZero || PViewMode == MemoryViewMode.AutoDot)
+                        } else if(viewMode == MemoryViewMode.AutoZero || viewMode == MemoryViewMode.AutoDot)
                         {
-                            // if it might be a pointer, cast it as hex
-                            if (ValidMemory.validAddress(value))
+                            if(ValidMemory.validAddress(value))
                             {
                                 cell.Value = GlobalFunctions.toHex(value);
-                            }
-                            else
+                            } else
                             {
-                                // If it's a float, and it's not too big or small, cast it as a Single
                                 Single singleCast = GlobalFunctions.UIntToSingle(value);
-                                if (!Single.IsNaN(singleCast) && Math.Abs(singleCast) > 1e-7 && Math.Abs(singleCast) < 1e10)
+                                if(!Single.IsNaN(singleCast) && Math.Abs(singleCast) > 1e-7 &&
+                                    Math.Abs(singleCast) < 1e10)
                                 {
                                     cell.Value = PrettyFloat(GlobalFunctions.UIntToSingle(value));
-                                }
-                                else
+                                } else
                                 {
-                                    if (IsASCII(buffer))
+                                    if(IsASCII(buffer))
                                     {
-                                        if (PViewMode == MemoryViewMode.AutoZero && value == 0)
+                                        if(viewMode == MemoryViewMode.AutoZero && value == 0)
                                         {
-                                            // Cast 0 as hex in auto zero mode
                                             cell.Value = GlobalFunctions.toHex(value);
-                                        }
-                                        else
+                                        } else
                                         {
-                                            // If all characters are valid printable ASCII, cast it as char
                                             cell.Value = DecodeASCII(buffer);
                                         }
-                                    }
-                                    else
+                                    } else
                                     {
-                                        // When all else fails, cast as hex
                                         cell.Value = GlobalFunctions.toHex(value);
                                     }
                                 }
@@ -219,20 +170,14 @@ namespace GeckoApp
                 }
                 oldRow = (int)offset / 0x10;
                 oldCol = (int)(offset & 0xC) / 4 + 1;
-                if (!fast)
+                if(!fast)
                 {
                     gView.Rows[oldRowIndex].Cells[oldColumnIndex].Selected = true;
-                    // Don't update the poke value during auto-updates
-                    // This way the user can still poke things
-
-                    // TODO: Ignore this if the poke operation isn't write?
-                    //pokeValue.Text = GlobalFunctions.toHex(pValue);
                 }
 
-                pokeAddress.Text = GlobalFunctions.toHex(selAddress);
+                pokeAddress.Text = GlobalFunctions.toHex(selectedAddress);
                 fpValue.Text = GlobalFunctions.UIntToSingle(pValue).ToString("G6");
-            }
-            catch (ETCPGeckoException e)
+            } catch(ETCPGeckoException e)
             {
                 exceptionHandling.HandleException(e);
             }
@@ -241,11 +186,10 @@ namespace GeckoApp
         private String PrettyFloat(Single val)
         {
             String floatString = val.ToString("G6");
-            if (floatString.Length > 8)
+            if(floatString.Length > 8)
             {
                 return val.ToString("G2");
-            }
-            else
+            } else
             {
                 return floatString;
             }
@@ -254,10 +198,10 @@ namespace GeckoApp
         private static String DecodeUnicode(Byte[] buffer)
         {
             String cellV = string.Empty;
-            for (int k = 0; k < 2; k++)
+            for(int k = 0; k < 2; k++)
             {
                 UInt16 hwInput = (UInt16)(buffer[k * 2] << 8 + buffer[k * 2 + 1]);
-                if (hwInput > 0x20 && hwInput != 0x7F)
+                if(hwInput > 0x20 && hwInput != 0x7F)
                     cellV += "   " + (char)hwInput;
                 else
                     cellV += "   .";
@@ -267,9 +211,9 @@ namespace GeckoApp
 
         private static bool IsASCII(Byte[] buffer)
         {
-            for (int k = 0; k < 4; k++)
+            for(int k = 0; k < 4; k++)
             {
-                if ((buffer[k] != 0) && (buffer[k] < 0x20 || buffer[k] > 0x7E)) return false;
+                if((buffer[k] != 0) && (buffer[k] < 0x20 || buffer[k] > 0x7E)) return false;
             }
             return true;
         }
@@ -277,10 +221,10 @@ namespace GeckoApp
         private static String DecodeASCII(Byte[] buffer)
         {
             String cellV = string.Empty;
-            for (int k = 0; k < 4; k++)
+            for(int k = 0; k < 4; k++)
             {
                 Byte bInput = buffer[k];
-                if (bInput > 0x20 && bInput < 0x7F)
+                if(bInput > 0x20 && bInput < 0x7F)
                     cellV += " " + (char)bInput;
                 else
                     cellV += " .";
@@ -291,10 +235,10 @@ namespace GeckoApp
         private static String DecodeANSI(Byte[] buffer)
         {
             String cellV = string.Empty;
-            for (int k = 0; k < 4; k++)
+            for(int k = 0; k < 4; k++)
             {
                 Byte bInput = buffer[k];
-                if (bInput > 0x20 && bInput != 0x7F)
+                if(bInput > 0x20 && bInput != 0x7F)
                     cellV += " " + (char)bInput;
                 else
                     cellV += " .";
@@ -304,38 +248,34 @@ namespace GeckoApp
 
         private void CellClick(object sender, DataGridViewCellEventArgs e)
         {
-            //
         }
 
         private void CellSelectionChange(object sender, EventArgs e)
         {
             UInt32 sAddress = cAddress & 0xFFFFFFF0;
-            if (gView.SelectedCells.Count > 0)
+            if(gView.SelectedCells.Count > 0)
             {
                 int col = gView.SelectedCells[0].ColumnIndex;
                 int row = gView.SelectedCells[0].RowIndex;
-                if (col == 0)
+                if(col == 0)
                 {
                     gView.Rows[oldRow].Cells[oldCol].Selected = true;
-                }
-                else
+                } else
                 {
                     oldCol = col;
                     oldRow = row;
                     UInt32 addr = (UInt32)(sAddress + row * 16 + (col - 1) * 4);
 
-                    // Nothing to update if the address didn't change
-                    if (selAddress == addr) return;
+                    if(selectedAddress == addr) return;
 
-                    selAddress = addr;
+                    selectedAddress = addr;
                     pokeAddress.Text = GlobalFunctions.toHex(addr);
                     try
                     {
                         UInt32 locValue = gecko.peek(addr);
                         pokeValue.Text = GlobalFunctions.toHex(locValue);
                         fpValue.Text = GlobalFunctions.UIntToSingle(locValue).ToString("G6");
-                    }
-                    catch (ETCPGeckoException exc)
+                    } catch(ETCPGeckoException exc)
                     {
                         exceptionHandling.HandleException(exc);
                     }
@@ -345,7 +285,7 @@ namespace GeckoApp
 
         public void GoBack()
         {
-            if (history.Count > 0)
+            if(history.Count > 0)
             {
                 redo.Push(cAddress);
                 cAddress = history.Pop();
@@ -354,7 +294,7 @@ namespace GeckoApp
 
         public void GoForward()
         {
-            if (redo.Count > 0)
+            if(redo.Count > 0)
             {
                 history.Push(cAddress);
                 cAddress = redo.Pop();
@@ -362,20 +302,19 @@ namespace GeckoApp
         }
 
         public void SearchString(byte[] searchBytes, bool caseSensitive, bool unicode, bool hex)
-        //public void SearchString(String sString, bool caseSensitive, bool unicode)
         {
             byte[] stringBytes = searchBytes;
 
-            UInt32 startAddr = selAddress + 4;
+            UInt32 startAddr = selectedAddress + 4;
 
             UInt32 endAddress = 0;
 
             int dumpLength = (unicode ? 2 : 1);
 
             bool found = false;
-            for (int i = 0; i < ValidMemory.ValidAreas.Length; i++)
+            for(int i = 0; i < ValidMemory.ValidAreas.Length; i++)
             {
-                if (startAddr >= ValidMemory.ValidAreas[i].low &&
+                if(startAddr >= ValidMemory.ValidAreas[i].low &&
                     startAddr < ValidMemory.ValidAreas[i].high)
                 {
                     found = true;
@@ -384,7 +323,7 @@ namespace GeckoApp
                 }
             }
 
-            if (!found)
+            if(!found)
             {
                 throw new Exception("Memory area could not be acquired!");
             }
@@ -395,7 +334,7 @@ namespace GeckoApp
 
             MemoryStream ms = new MemoryStream();
 
-            UInt32 SearchBufferSize = 0x400 * 256;   // 400 is the packet size in TCPGecko.cs
+            UInt32 SearchBufferSize = 0x400 * 256;
 
             UInt32 dumpHigh = Math.Min(startAddr + SearchBufferSize, endAddress);
 
@@ -413,7 +352,7 @@ namespace GeckoApp
 
                     index = GlobalFunctions.IndexOfByteArray(streamArray, stringBytes, startIndex, caseSensitive);
 
-                    if (index != -1)
+                    if(index != -1)
                     {
                         valueFound = true;
                         break;
@@ -421,23 +360,20 @@ namespace GeckoApp
 
                     startAddr = dumpHigh;
                     dumpHigh = Math.Min(startAddr + SearchBufferSize, endAddress);
-                    Application.DoEvents();     // check for cancel search
-                } while (dumpHigh != endAddress && !valueFound && searching);
+                    Application.DoEvents();
+                } while (dumpHigh != endAddress && !valueFound && Searching);
 
-                if (valueFound)
+                if(valueFound)
                 {
                     UInt32 address = (UInt32)(beginAddress + index);
                     cAddress = address;
-                }
-                else
+                } else
                 {
-                    // hack to fix the jumping disassembly window
                     cAddress = beginAddress - 4;
-                    if (dumpHigh == endAddress)
+                    if(dumpHigh == endAddress)
                         MessageBox.Show("Could not find search query");
                 }
-            }
-            catch (ETCPGeckoException exc)
+            } catch(ETCPGeckoException exc)
             {
                 exceptionHandling.HandleException(exc);
             }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Drawing;
+using System.Text.RegularExpressions;
 using System.Windows.Forms;
 
 namespace GeckoApp.external
@@ -9,30 +10,14 @@ namespace GeckoApp.external
     {
         private Color colorAddressGood, colorAddressBad;
 
-        private bool autoHistory;
-        private bool endingAddress;
-        private bool multiPokeAddress;
+        [Browsable(true)]
+        public bool AutoHistory { get; set; }
 
         [Browsable(true)]
-        public bool AutoHistory
-        {
-            get { return autoHistory; }
-            set { autoHistory = value; }
-        }
+        public bool EndingAddress { get; set; }
 
         [Browsable(true)]
-        public bool EndingAddress
-        {
-            get { return endingAddress; }
-            set { endingAddress = value; }
-        }
-
-        [Browsable(true)]
-        public bool MultiPokeAddress
-        {
-            get { return multiPokeAddress; }
-            set { multiPokeAddress = value; }
-        }
+        public bool MultiPokeAddress { get; set; }
 
         public AddressTextBox()
         {
@@ -66,9 +51,7 @@ namespace GeckoApp.external
 
         private void AddressTextBox_MouseDoubleClick(object sender, MouseEventArgs e)
         {
-            //SendToBack();
-            //comboBoxHistory.BringToFront();
-            if (!comboBoxHistory.DroppedDown)
+            if(!comboBoxHistory.DroppedDown)
             {
                 comboBoxHistory.SelectedIndex = comboBoxHistory.Items.IndexOf(this.Text);
             }
@@ -78,13 +61,11 @@ namespace GeckoApp.external
         private void comboBoxHistory_DropDownClosed(object sender, EventArgs e)
         {
             ShowHistory(false);
-            //BringToFront();
-            //comboBoxHistory.SendToBack();
         }
 
         private void comboBoxHistory_SelectedIndexChanged(object sender, EventArgs e)
         {
-            if (comboBoxHistory.SelectedItem != null)
+            if(comboBoxHistory.SelectedItem != null)
             {
                 this.Text = comboBoxHistory.SelectedItem.ToString();
             }
@@ -97,37 +78,22 @@ namespace GeckoApp.external
 
         private void AddressTextBox_KeyDown(object sender, KeyEventArgs e)
         {
-            // Show history if user presses down or up
-            //if (e.KeyCode == Keys.Up || e.KeyCode == Keys.Down)
-            //{
-            //    ShowHistory(true);
-            //}
-            //else
-            //{
-            //    ShowHistory(false);
-            //}
-
             bool HistoryShown = false, handled = false;
 
-            if (e.KeyCode == Keys.Down)
+            if(e.KeyCode == Keys.Down)
             {
-                // If there are any items...
-                if (comboBoxHistory.Items.Count > 0)
+                if(comboBoxHistory.Items.Count > 0)
                 {
                     int index;
-                    // if showing, and current text is in the history, start with that index
-                    if (!comboBoxHistory.DroppedDown)
+                    if(!comboBoxHistory.DroppedDown)
                     {
                         index = comboBoxHistory.Items.IndexOf(this.Text);
-                    }
-                    else
+                    } else
                     {
                         index = comboBoxHistory.SelectedIndex + 1;
                     }
 
-                    // select the next one, and wrap around if necessary
-                    // note this doesn't have to worry about selectedIndex == -1 (i.e. no item)
-                    if (index == comboBoxHistory.Items.Count)
+                    if(index == comboBoxHistory.Items.Count)
                     {
                         index = 0;
                     }
@@ -140,23 +106,19 @@ namespace GeckoApp.external
                 HistoryShown = true;
             }
 
-            if (e.KeyCode == Keys.Up)
+            if(e.KeyCode == Keys.Up)
             {
-                // If there are any items...
-                if (comboBoxHistory.Items.Count > 0)
+                if(comboBoxHistory.Items.Count > 0)
                 {
                     int index = comboBoxHistory.SelectedIndex;
-                    // select the next one, and wrap around if necessary
-                    // This tests both against 0, and against none
-                    if (index < 1)
+                    if(index < 1)
                     {
                         index = comboBoxHistory.Items.Count;
                     }
-                    if (!comboBoxHistory.DroppedDown)
+                    if(!comboBoxHistory.DroppedDown)
                     {
                         index = comboBoxHistory.Items.IndexOf(this.Text);
-                    }
-                    else
+                    } else
                     {
                         index--;
                     }
@@ -168,13 +130,13 @@ namespace GeckoApp.external
                 HistoryShown = true;
             }
 
-            if (e.KeyCode == Keys.Delete)
+            if(e.KeyCode == Keys.Delete)
             {
-                if (comboBoxHistory.Items.Count > 0)
+                if(comboBoxHistory.Items.Count > 0)
                 {
                     object selectedString = comboBoxHistory.SelectedItem;
                     int index = Math.Min(comboBoxHistory.SelectedIndex, comboBoxHistory.Items.Count - 2);
-                    if (selectedString != null && comboBoxHistory.DroppedDown)
+                    if(selectedString != null && comboBoxHistory.DroppedDown)
                     {
                         RemoveAddressFromHistory(selectedString.ToString());
                         comboBoxHistory.SelectedIndex = index;
@@ -184,56 +146,48 @@ namespace GeckoApp.external
                 HistoryShown = true;
             }
 
-            if (e.KeyCode == Keys.Enter && comboBoxHistory.DroppedDown && comboBoxHistory.Items.Count > 0)
+            if(e.KeyCode == Keys.Enter && comboBoxHistory.DroppedDown && comboBoxHistory.Items.Count > 0)
             {
-                if (comboBoxHistory.SelectedItem != null)
+                if(comboBoxHistory.SelectedItem != null)
                 {
                     this.Text = comboBoxHistory.SelectedItem.ToString();
                 }
             }
 
-            if (e.Control)
+            if(e.Control)
             {
-                if (e.Shift)
+                if(e.Shift)
                 {
-                    // ctrl + shift to affect all history - copy, cut, paste, delete
-                    if (e.KeyCode == Keys.C)
+                    if(e.KeyCode == Keys.C)
                     {
                         CopyHistoryToClipboard();
-                        // Prevent the normal ctrl+c that gets handled by KeyPress from replacing our clipboard
                         this.DeselectAll();
                         handled = true;
                         HistoryShown = true;
-                    }
-                    else if (e.KeyCode == Keys.X)
+                    } else if(e.KeyCode == Keys.X)
                     {
                         CopyHistoryToClipboard();
                         ClearHistory();
                         this.DeselectAll();
                         handled = true;
                         HistoryShown = true;
-                    }
-                    else if (e.KeyCode == Keys.V)
+                    } else if(e.KeyCode == Keys.V)
                     {
                         CopyClipboardToHistory();
                         handled = true;
                         HistoryShown = true;
-                    }
-                    else if (e.KeyCode == Keys.Delete)
+                    } else if(e.KeyCode == Keys.Delete)
                     {
                         ClearHistory();
                         handled = true;
                         HistoryShown = true;
                     }
-                }
-                // ctrl + keys to affect current
-                else if (e.KeyCode == Keys.Enter)
+                } else if(e.KeyCode == Keys.Enter)
                 {
                     AddAddressToHistory();
                     handled = true;
                     HistoryShown = true;
-                }
-                else if (e.KeyCode == Keys.Delete)
+                } else if(e.KeyCode == Keys.Delete)
                 {
                     RemoveAddressFromHistory();
                     handled = true;
@@ -241,8 +195,7 @@ namespace GeckoApp.external
                 }
             }
 
-            // Don't let control or shift close an opened history
-            if ((e.Control || e.Shift) && comboBoxHistory.DroppedDown)
+            if((e.Control || e.Shift) && comboBoxHistory.DroppedDown)
             {
                 HistoryShown = true;
             }
@@ -253,10 +206,8 @@ namespace GeckoApp.external
 
         private void AddressTextBox_KeyPress(object sender, KeyPressEventArgs e)
         {
-            if (e.KeyChar == '\n')
+            if(e.KeyChar == '\n')
             {
-                // This is a control-enter, I believe
-                // We shut it up because it makes beepy sounds
                 e.Handled = true;
             }
         }
@@ -264,22 +215,19 @@ namespace GeckoApp.external
         private void AddressTextBox_TextChanged(object sender, EventArgs e)
         {
             String text = this.Text;
-            if (multiPokeAddress)
+            if(MultiPokeAddress)
             {
-                text = System.Text.RegularExpressions.Regex.Replace(text, "[^A-FMP0-9]", String.Empty);
-            }
-            else
+                text = Regex.Replace(text, "[^A-FMP0-9]", String.Empty);
+            } else
             {
-                text = System.Text.RegularExpressions.Regex.Replace(text, "[^A-F0-9]", String.Empty);
+                text = Regex.Replace(text, "[^A-F0-9]", String.Empty);
             }
             this.Text = text;
 
-            // color address text box background according to validity
-            if ((multiPokeAddress && this.Text.Equals("MP")) || IsValid())
+            if((MultiPokeAddress && this.Text.Equals("MP")) || IsValid())
             {
                 this.BackColor = colorAddressGood;
-            }
-            else
+            } else
             {
                 this.BackColor = colorAddressBad;
             }
@@ -287,12 +235,12 @@ namespace GeckoApp.external
 
         public void AddAddressToHistory(string addMe)
         {
-            if (IsValid(addMe) && !comboBoxHistory.Items.Contains(addMe))
+            if(IsValid(addMe) && !comboBoxHistory.Items.Contains(addMe))
             {
                 comboBoxHistory.Items.Add(addMe);
             }
 
-            if (comboBoxHistory.Items.Contains(String.Empty))
+            if(comboBoxHistory.Items.Contains(String.Empty))
             {
                 comboBoxHistory.Items.Remove(String.Empty);
             }
@@ -310,7 +258,7 @@ namespace GeckoApp.external
 
         public void RemoveAddressFromHistory(string removeMe)
         {
-            if (comboBoxHistory.Items.Contains(removeMe))
+            if(comboBoxHistory.Items.Contains(removeMe))
             {
                 comboBoxHistory.Items.Remove(removeMe);
             }
@@ -346,7 +294,7 @@ namespace GeckoApp.external
         public void CopyStringToHistory(String newHistory)
         {
             String[] sep = newHistory.Split(new char[] { '\r', '\n' });
-            foreach (String entry in sep)
+            foreach(String entry in sep)
             {
                 AddAddressToHistory(entry);
             }
@@ -356,10 +304,10 @@ namespace GeckoApp.external
         {
             String result = String.Empty;
 
-            foreach (Object entry in comboBoxHistory.Items)
+            foreach(Object entry in comboBoxHistory.Items)
             {
                 result += entry.ToString();
-                if (entry != comboBoxHistory.Items[comboBoxHistory.Items.Count - 1])
+                if(entry != comboBoxHistory.Items[comboBoxHistory.Items.Count - 1])
                 {
                     result += "\r\n";
                 }
@@ -380,29 +328,26 @@ namespace GeckoApp.external
         public bool IsValidGet(string checkMe, bool showMessages, out uint value)
         {
             uint newValue;
-            if (GlobalFunctions.tryToHex(checkMe, out newValue))
+            if(GlobalFunctions.tryToHex(checkMe, out newValue))
             {
-                if (ValidMemory.validAddress(newValue))
+                if(ValidMemory.validAddress(newValue))
                 {
                     value = newValue;
                     return true;
-                }
-                else if (endingAddress && ValidMemory.validAddress(newValue - 1))
+                } else if(EndingAddress && ValidMemory.validAddress(newValue - 1))
                 {
                     value = newValue;
                     return true;
-                }
-                else
+                } else
                 {
-                    if (showMessages)
+                    if(showMessages)
                     {
                         MessageBox.Show("Address is not a valid 32-bit hex string");
                     }
                 }
-            }
-            else
+            } else
             {
-                if (showMessages)
+                if(showMessages)
                 {
                     MessageBox.Show("Address is not in valid range of Wii memory");
                 }
@@ -441,17 +386,16 @@ namespace GeckoApp.external
         public void ShowHistory(bool shown)
         {
             comboBoxHistory.Visible = shown;
-            if (comboBoxHistory.Items.Count == 0)
+            if(comboBoxHistory.Items.Count == 0)
             {
                 comboBoxHistory.Items.Add(String.Empty);
             }
             comboBoxHistory.DroppedDown = shown;
-            if (shown)
+            if(shown)
             {
                 comboBoxHistory.BringToFront();
                 BringToFront();
-            }
-            else
+            } else
             {
                 comboBoxHistory.SendToBack();
             }
@@ -459,7 +403,7 @@ namespace GeckoApp.external
 
         private void AddressTextBox_Leave(object sender, EventArgs e)
         {
-            if (AutoHistory)
+            if(AutoHistory)
             {
                 AddAddressToHistory();
             }
@@ -475,16 +419,15 @@ namespace GeckoApp.external
             try
             {
                 bool negative = false;
-                if (offset.Contains("-"))
+                if(offset.Contains("-"))
                 {
                     offset = offset.Replace("-", String.Empty);
                     negative = true;
                 }
                 int casted = Convert.ToInt32(offset, 16);
-                if (negative) casted *= -1;
+                if(negative) casted *= -1;
                 AddOffsetToAddress(casted);
-            }
-            catch (FormatException)
+            } catch(FormatException)
             {
             }
         }

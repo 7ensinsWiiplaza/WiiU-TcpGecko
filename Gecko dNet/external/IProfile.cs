@@ -1,33 +1,3 @@
-/*
- * AMS.Profile Class Library
- *
- * Written by Alvaro Mendez
- * Copyright (c) 2005. All Rights Reserved.
- *
- * The AMS.Profile namespace contains interfaces and classes that
- * allow reading and writing of user-profile data.
- * This file contains the interfaces.
- *
- * The code is thoroughly documented, however, if you have any questions,
- * feel free to email me at alvaromendez@consultant.com.  Also, if you
- * decide to this in a commercial application I would appreciate an email
- * message letting me know.
- *
- * This code may be used in compiled form in any way you desire. This
- * file may be redistributed unmodified by any means providing it is
- * not sold for profit without the authors written consent, and
- * providing that this notice and the authors name and all copyright
- * notices remains intact. This file and the accompanying source code
- * may not be hosted on a website or bulletin board without the author's
- * written permission.
- *
- * This file is provided "as is" with no expressed or implied warranty.
- * The author accepts no liability for any damage/loss of business that
- * this product may cause.
- *
- * Last Updated: Feb. 15, 2005
- */
-
 using System;
 using System.Data;
 

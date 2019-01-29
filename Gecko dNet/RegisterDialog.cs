@@ -18,13 +18,14 @@ namespace GeckoApp
 
         public bool SetRegister(String name, ref UInt32 value)
         {
-            InstLab.Text = "You are about to change the value stored in the register " + name +
-                           ". Please type in the new value and click OK to set it or Cancel to abort.";
+            InstLab.Text = "You are about to change the value stored in the register " +
+                name +
+                ". Please type in the new value and click OK to set it or Cancel to abort.";
             RegVal.Text = "Value of register " + name + ":";
             RValue.Text = GlobalFunctions.toHex(value);
             setValue = value;
 
-            if (this.ShowDialog() == DialogResult.OK)
+            if(this.ShowDialog() == DialogResult.OK)
             {
                 value = setValue;
                 return true;
@@ -36,13 +37,12 @@ namespace GeckoApp
         private void CheckInput_Click(object sender, EventArgs e)
         {
             UInt32 tryHex;
-            if (GlobalFunctions.tryToHex(RValue.Text, out tryHex))
+            if(GlobalFunctions.tryToHex(RValue.Text, out tryHex))
             {
                 setValue = tryHex;
                 DialogResult = DialogResult.OK;
                 Close();
-            }
-            else
+            } else
                 MessageBox.Show("Invalid value!");
         }
 

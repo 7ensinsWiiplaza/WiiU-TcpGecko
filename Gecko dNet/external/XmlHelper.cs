@@ -1,33 +1,3 @@
-/*
- * AMS.Profile Class Library
- *
- * Written by Alvaro Mendez
- * Copyright (c) 2005. All Rights Reserved.
- *
- * The AMS.Profile namespace contains interfaces and classes that
- * allow reading and writing of user-profile data.
- * This file contains the helper classes for the Xml-based Profile classes.
- *
- * The code is thoroughly documented, however, if you have any questions,
- * feel free to email me at alvaromendez@consultant.com.  Also, if you
- * decide to this in a commercial application I would appreciate an email
- * message letting me know.
- *
- * This code may be used in compiled form in any way you desire. This
- * file may be redistributed unmodified by any means providing it is
- * not sold for profit without the authors written consent, and
- * providing that this notice and the authors name and all copyright
- * notices remains intact. This file and the accompanying source code
- * may not be hosted on a website or bulletin board without the author's
- * written permission.
- *
- * This file is provided "as is" with no expressed or implied warranty.
- * The author accepts no liability for any damage/loss of business that
- * this product may cause.
- *
- * Last Updated: Feb. 17, 2005
- */
-
 using System;
 using System.IO;
 using System.Security;
@@ -56,8 +26,7 @@ namespace AMS.Profile
         ///   Initializes a new instance of the XmlBased class by setting the <see cref="Profile.Name" /> to the given file name. </summary>
         /// <param name="fileName">
         ///   The name of the file to initialize the <see cref="Profile.Name" /> property with. </param>
-        protected XmlBased(string fileName) :
-            base(fileName)
+        protected XmlBased(string fileName) : base(fileName)
         {
         }
 
@@ -65,8 +34,7 @@ namespace AMS.Profile
         ///   Initializes a new instance of the XmlBased class based on another XmlBased object. </summary>
         /// <param name="profile">
         ///   The XmlBased profile object whose properties and events are used to initialize the object being constructed. </param>
-        protected XmlBased(XmlBased profile) :
-            base(profile)
+        protected XmlBased(XmlBased profile) : base(profile)
         {
             m_encoding = profile.Encoding;
         }
@@ -83,11 +51,11 @@ namespace AMS.Profile
         ///	  Parse error in the XML being loaded from the file. </exception>
         protected XmlDocument GetXmlDocument()
         {
-            if (m_buffer != null)
+            if(m_buffer != null)
                 return m_buffer.XmlDocument;
 
             VerifyName();
-            if (!File.Exists(Name))
+            if(!File.Exists(Name))
                 return null;
 
             XmlDocument doc = new XmlDocument();
@@ -105,8 +73,8 @@ namespace AMS.Profile
         ///   the contents of the XmlDocument object are saved to the file. </remarks>
         protected void Save(XmlDocument doc)
         {
-            if (m_buffer != null)
-                m_buffer.m_needsFlushing = true;
+            if(m_buffer != null)
+                m_buffer.NeedsFlushing = true;
             else
                 doc.Save(Name);
         }
@@ -149,7 +117,7 @@ namespace AMS.Profile
         /// <seealso cref="Buffering" />
         public XmlBuffer Buffer(bool lockFile)
         {
-            if (m_buffer == null)
+            if(m_buffer == null)
                 m_buffer = new XmlBuffer(this, lockFile);
             return m_buffer;
         }
@@ -234,10 +202,10 @@ namespace AMS.Profile
             set
             {
                 VerifyNotReadOnly();
-                if (m_encoding == value)
+                if(m_encoding == value)
                     return;
 
-                if (!RaiseChangeEvent(true, ProfileChangeType.Other, null, "Encoding", value))
+                if(!RaiseChangeEvent(true, ProfileChangeType.Other, null, "Encoding", value))
                     return;
 
                 m_encoding = value;
@@ -262,7 +230,6 @@ namespace AMS.Profile
         private XmlBased m_profile;
         private XmlDocument m_doc;
         private FileStream m_file;
-        internal bool m_needsFlushing;
 
         /// <summary>
         ///   Initializes a new instance of the XmlBuffer class and optionally locks the file. </summary>
@@ -281,11 +248,14 @@ namespace AMS.Profile
         {
             m_profile = profile;
 
-            if (lockFile)
+            if(lockFile)
             {
                 m_profile.VerifyName();
-                if (File.Exists(m_profile.Name))
-                    m_file = new FileStream(m_profile.Name, FileMode.Open, m_profile.ReadOnly ? FileAccess.Read : FileAccess.ReadWrite, FileShare.Read);
+                if(File.Exists(m_profile.Name))
+                    m_file = new FileStream(m_profile.Name,
+                                            FileMode.Open,
+                                            m_profile.ReadOnly ? FileAccess.Read : FileAccess.ReadWrite,
+                                            FileShare.Read);
             }
         }
 
@@ -301,7 +271,7 @@ namespace AMS.Profile
             writer.BaseStream.Position = 0;
             m_doc.Load(writer.BaseStream);
 
-            m_needsFlushing = true;
+            NeedsFlushing = true;
         }
 
         /// <summary>
@@ -314,19 +284,18 @@ namespace AMS.Profile
         {
             get
             {
-                if (m_doc == null)
+                if(m_doc == null)
                 {
                     m_doc = new XmlDocument();
 
-                    if (m_file != null)
+                    if(m_file != null)
                     {
                         m_file.Position = 0;
                         m_doc.Load(m_file);
-                    }
-                    else
+                    } else
                     {
                         m_profile.VerifyName();
-                        if (File.Exists(m_profile.Name))
+                        if(File.Exists(m_profile.Name))
                             m_doc.Load(m_profile.Name);
                     }
                 }
@@ -353,13 +322,7 @@ namespace AMS.Profile
         ///   update the file. </remarks>
         /// <seealso cref="Flush" />
         /// <seealso cref="Close" />
-        public bool NeedsFlushing
-        {
-            get
-            {
-                return m_needsFlushing;
-            }
-        }
+        public bool NeedsFlushing { get; internal set; }
 
         /// <summary>
         ///   Gets whether the file associated with the buffer's profile is locked. </summary>
@@ -389,13 +352,13 @@ namespace AMS.Profile
         /// <seealso cref="Reset" />
         public void Flush()
         {
-            if (m_profile == null)
+            if(m_profile == null)
                 throw new InvalidOperationException("Cannot flush an XmlBuffer object that has been closed.");
 
-            if (m_doc == null)
+            if(m_doc == null)
                 return;
 
-            if (m_file == null)
+            if(m_file == null)
                 m_doc.Save(m_profile.Name);
             else
             {
@@ -403,7 +366,7 @@ namespace AMS.Profile
                 m_doc.Save(m_file);
             }
 
-            m_needsFlushing = false;
+            NeedsFlushing = false;
         }
 
         /// <summary>
@@ -417,11 +380,11 @@ namespace AMS.Profile
         /// <seealso cref="Close" />
         public void Reset()
         {
-            if (m_profile == null)
+            if(m_profile == null)
                 throw new InvalidOperationException("Cannot reset an XmlBuffer object that has been closed.");
 
             m_doc = null;
-            m_needsFlushing = false;
+            NeedsFlushing = false;
         }
 
         /// <summary>
@@ -435,21 +398,21 @@ namespace AMS.Profile
         /// <seealso cref="Dispose" />
         public void Close()
         {
-            if (m_profile == null)
+            if(m_profile == null)
                 return;
 
-            if (m_needsFlushing)
+            if(NeedsFlushing)
                 Flush();
 
             m_doc = null;
 
-            if (m_file != null)
+            if(m_file != null)
             {
                 m_file.Close();
                 m_file = null;
             }
 
-            if (m_profile != null)
+            if(m_profile != null)
                 m_profile.m_buffer = null;
             m_profile = null;
         }

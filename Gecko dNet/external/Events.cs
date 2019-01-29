@@ -1,33 +1,3 @@
-/*
- * AMS.Profile Class Library
- *
- * Written by Alvaro Mendez
- * Copyright (c) 2005. All Rights Reserved.
- *
- * The AMS.Profile namespace contains interfaces and classes that
- * allow reading and writing of user-profile data.
- * This file contains the event-related types.
- *
- * The code is thoroughly documented, however, if you have any questions,
- * feel free to email me at alvaromendez@consultant.com.  Also, if you
- * decide to this in a commercial application I would appreciate an email
- * message letting me know.
- *
- * This code may be used in compiled form in any way you desire. This
- * file may be redistributed unmodified by any means providing it is
- * not sold for profit without the authors written consent, and
- * providing that this notice and the authors name and all copyright
- * notices remains intact. This file and the accompanying source code
- * may not be hosted on a website or bulletin board without the author's
- * written permission.
- *
- * This file is provided "as is" with no expressed or implied warranty.
- * The author accepts no liability for any damage/loss of business that
- * this product may cause.
- *
- * Last Updated: Feb. 15, 2005
- */
-
 using System;
 
 namespace AMS.Profile
@@ -90,13 +60,6 @@ namespace AMS.Profile
     /// <seealso cref="ProfileChangingArgs" />
     public class ProfileChangedArgs : EventArgs
     {
-        // Fields
-        private readonly ProfileChangeType m_changeType;
-
-        private readonly string m_section;
-        private readonly string m_entry;
-        private readonly object m_value;
-
         /// <summary>
         ///   Initializes a new instance of the ProfileChangedArgs class by initializing all of its properties. </summary>
         /// <param name="changeType">
@@ -110,54 +73,30 @@ namespace AMS.Profile
         /// <seealso cref="ProfileChangeType" />
         public ProfileChangedArgs(ProfileChangeType changeType, string section, string entry, object value)
         {
-            m_changeType = changeType;
-            m_section = section;
-            m_entry = entry;
-            m_value = value;
+            ChangeType = changeType;
+            Section = section;
+            Entry = entry;
+            Value = value;
         }
 
         /// <summary>
         ///   Gets the type of change that raised the event. </summary>
-        public ProfileChangeType ChangeType
-        {
-            get
-            {
-                return m_changeType;
-            }
-        }
+        public ProfileChangeType ChangeType { get; }
 
         /// <summary>
         ///   Gets the name of the section involved in the change, or null if not applicable. </summary>
-        public string Section
-        {
-            get
-            {
-                return m_section;
-            }
-        }
+        public string Section { get; }
 
         /// <summary>
         ///   Gets the name of the entry involved in the change, or null if not applicable. </summary>
         /// <remarks>
         ///   If <see cref="ChangeType" /> is set to Other, this property holds the name of the
         ///   method/property that was changed. </remarks>
-        public string Entry
-        {
-            get
-            {
-                return m_entry;
-            }
-        }
+        public string Entry { get; }
 
         /// <summary>
         ///   Gets the new value for the entry or method/property, based on the value of <see cref="ChangeType" />. </summary>
-        public object Value
-        {
-            get
-            {
-                return m_value;
-            }
-        }
+        public object Value { get; }
     }
 
     /// <summary>
@@ -169,8 +108,6 @@ namespace AMS.Profile
     /// <seealso cref="ProfileChangedArgs" />
     public class ProfileChangingArgs : ProfileChangedArgs
     {
-        private bool m_cancel;
-
         /// <summary>
         ///   Initializes a new instance of the ProfileChangingArgs class by initializing all of its properties. </summary>
         /// <param name="changeType">
@@ -182,8 +119,10 @@ namespace AMS.Profile
         /// <param name="value">
         ///   The new value for the entry or method/property, based on the value of changeType. </param>
         /// <seealso cref="ProfileChangeType" />
-        public ProfileChangingArgs(ProfileChangeType changeType, string section, string entry, object value) :
-            base(changeType, section, entry, value)
+        public ProfileChangingArgs(ProfileChangeType changeType, string section, string entry, object value) : base(changeType,
+                                                                                                                    section,
+                                                                                                                    entry,
+                                                                                                                    value)
         {
         }
 
@@ -191,17 +130,7 @@ namespace AMS.Profile
         ///   Gets or sets whether the change about to the made should be canceled or not. </summary>
         /// <remarks>
         ///   By default this property is set to false, meaning that the change is allowed.  </remarks>
-        public bool Cancel
-        {
-            get
-            {
-                return m_cancel;
-            }
-            set
-            {
-                m_cancel = value;
-            }
-        }
+        public bool Cancel { get; set; }
     }
 
     /// <summary>

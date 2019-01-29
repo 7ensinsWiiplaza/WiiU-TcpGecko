@@ -507,16 +507,19 @@ namespace GeckoApp
                     switch(os_ver = gecko.OsVersionRequest())
                     {
                         case 400:
+                        case 410:
                             title_type = gecko.peek(0x1000ecb0);
                             title_id = gecko.peek(0x1000ecb4);
                             break;
 
                         case 500:
+                        case 510:
                             title_type = gecko.peek(0x10013010);
                             title_id = gecko.peek(0x10013014);
                             break;
 
                         case 532:
+                        case 540:
                             title_type = gecko.peek(0x100136D0);
                             title_id = gecko.peek(0x100136D4);
                             break;
@@ -4624,7 +4627,8 @@ namespace GeckoApp
                         break;
 
                     case 532:
-                        OSSuspendThread = 0x010424dc;
+                    case 540:
+                        OSSuspendThread = 0x010424DC;
                         break;
 
                     case 550:
@@ -4666,6 +4670,7 @@ namespace GeckoApp
                         break;
 
                     case 532:
+                    case 540:
                         OSResumeThread = 0x010419b0;
                         break;
 

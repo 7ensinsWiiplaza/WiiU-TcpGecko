@@ -119,7 +119,7 @@ namespace GeckoApp
                 case 550:
                 case 551:
                     mem = upper.peek_kern(0xFFEAB7AC);
-                    break;
+                    return;
 
                 default:
                     return;

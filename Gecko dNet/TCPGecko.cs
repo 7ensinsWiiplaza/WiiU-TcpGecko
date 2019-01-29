@@ -261,6 +261,7 @@ namespace GeckoApp
         private const Byte cmd_readmem = 0x04;
         private const Byte cmd_pause = 0x06;
         private const Byte cmd_unfreeze = 0x07;
+        private const Byte cmd_mem_disassemble = 0x08;
         private const Byte cmd_breakpoint = 0x09;
         private const Byte cmd_breakpointx = 0xa;
         private const Byte cmd_writekern = 0x0b;
@@ -272,11 +273,18 @@ namespace GeckoApp
         private const Byte cmd_hookpause = 0x43;
         private const Byte cmd_step = 0x44;
         private const Byte cmd_status = 0x50;
+        private const Byte cmd_GET_DATA_BUFFER_SIZE = 0x51;
+        private const Byte cmd_GET_CODE_HANDLER_ADDRESS = 0x55;
+        private const Byte cmd_ACCOUNT_IDENTIFIER = 0x57;
+        private const Byte cmd_GET_SYMBOL = 0x71;
+        private const Byte cmd_RUN_KERNEL_COPY_SERVICE = 0xCD;
         private const Byte cmd_cheatexec = 0x60;
         private const Byte cmd_rpc = 0x70;
         private const Byte cmd_nbreakpoint = 0x89;
         private const Byte cmd_version = 0x99;
         private const Byte cmd_os_version = 0x9A;
+
+        private const UInt32 VERSION_HASH = 0x7FB223;
 
         private const Byte GCBPHit = 0x11;
         private const Byte GCACK = 0xAA;
@@ -328,6 +336,20 @@ namespace GeckoApp
         }
 
         public static uint Packetsize => packetsize;
+
+        public static byte Cmd_GET_DATA_BUFFER_SIZE => cmd_GET_DATA_BUFFER_SIZE;
+
+        public static byte Cmd_mem_disassemble => cmd_mem_disassemble;
+
+        public static byte Cmd_GET_CODE_HANDLER_ADDRESS => cmd_GET_CODE_HANDLER_ADDRESS;
+
+        public static byte Cmd_ACCOUNT_IDENTIFIER => cmd_ACCOUNT_IDENTIFIER;
+
+        public static byte Cmd_GET_SYMBOL => cmd_GET_SYMBOL;
+
+        public static byte Cmd_RUN_KERNEL_COPY_SERVICE => cmd_RUN_KERNEL_COPY_SERVICE;
+
+        public static uint VERSION_HASH1 => VERSION_HASH;
 
         public TCPGecko(string host, int port)
         {

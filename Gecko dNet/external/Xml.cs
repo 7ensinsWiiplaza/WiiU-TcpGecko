@@ -7,10 +7,10 @@ namespace AMS.Profile
     /// <summary>
     ///   Profile class that utilizes an XML file to retrieve and save its data. </summary>
     /// <remarks>
-    ///   This class works with XML files, which are text files that store their data using XML.
+    ///   This class works with XML files, which are text files that store their data using XML. 
     ///   Since the format of XML is very flexible, I had to decide how to best organize the data
-    ///   using the section/entry paradigm.  After considering a couple of possibilities,
-    ///   I decided that the format below would be preferrable, since it allows section and
+    ///   using the section/entry paradigm.  After considering a couple of possibilities, 
+    ///   I decided that the format below would be preferrable, since it allows section and 
     ///   entry names to contain spaces.  It also looks cleaner and more consistent than if I had
     ///   used the section and entry names themselves to name the elements.
     ///   <para>
@@ -41,7 +41,8 @@ namespace AMS.Profile
         ///   Initializes a new instance of the Xml class by setting the <see cref="Profile.Name" /> to the given file name. </summary>
         /// <param name="fileName">
         ///   The name of the XML file to initialize the <see cref="Profile.Name" /> property with. </param>
-        public Xml(string fileName) : base(fileName)
+        public Xml(string fileName) :
+            base(fileName)
         {
         }
 
@@ -49,7 +50,8 @@ namespace AMS.Profile
         ///   Initializes a new instance of the Xml class based on another Xml object. </summary>
         /// <param name="xml">
         ///   The Xml object whose properties and events are used to initialize the object being constructed. </param>
-        public Xml(Xml xml) : base(xml)
+        public Xml(Xml xml) :
+            base(xml)
         {
             m_rootName = xml.m_rootName;
         }
@@ -105,12 +107,12 @@ namespace AMS.Profile
         /// <exception cref="NullReferenceException">
         ///   Setting this property to null. </exception>
         /// <remarks>
-        ///   By default this property is set to "profile", but it is only used when the file
-        ///   is not found and needs to be created to write the value.
-        ///   If the file exists, the name of the root element inside the file is ignored.
-        ///   The <see cref="Profile.Changing" /> event is raised before changing this property.
-        ///   If its <see cref="ProfileChangingArgs.Cancel" /> property is set to true, this method
-        ///   returns immediately without changing this property.  After the property has been changed,
+        ///   By default this property is set to "profile", but it is only used when the file 
+        ///   is not found and needs to be created to write the value. 
+        ///   If the file exists, the name of the root element inside the file is ignored. 
+        ///   The <see cref="Profile.Changing" /> event is raised before changing this property.  
+        ///   If its <see cref="ProfileChangingArgs.Cancel" /> property is set to true, this method 
+        ///   returns immediately without changing this property.  After the property has been changed, 
         ///   the <see cref="Profile.Changed" /> event is raised. </remarks>
         public string RootName
         {
@@ -121,10 +123,10 @@ namespace AMS.Profile
             set
             {
                 VerifyNotReadOnly();
-                if(m_rootName == value.Trim())
+                if (m_rootName == value.Trim())
                     return;
 
-                if(!RaiseChangeEvent(true, ProfileChangeType.Other, null, "RootName", value))
+                if (!RaiseChangeEvent(true, ProfileChangeType.Other, null, "RootName", value))
                     return;
 
                 m_rootName = value.Trim();
@@ -141,7 +143,7 @@ namespace AMS.Profile
         /// <param name="value">
         ///   The value to set. If it's null, the entry is removed. </param>
         /// <exception cref="InvalidOperationException">
-        ///   <see cref="Profile.Name" /> is null or empty,
+        ///   <see cref="Profile.Name" /> is null or empty, 
         ///   <see cref="Profile.ReadOnly" /> is true, or
         ///   the resulting XML document is invalid. </exception>
         /// <exception cref="ArgumentNullException">
@@ -151,17 +153,17 @@ namespace AMS.Profile
         ///	  the resulting XML document would not be well formed. </exception>
         /// <remarks>
         ///   If the XML file does not exist, it is created, unless <see cref="XmlBased.Buffering" /> is enabled.
-        ///   The <see cref="Profile.Changing" /> event is raised before setting the value.
-        ///   If its <see cref="ProfileChangingArgs.Cancel" /> property is set to true, this method
-        ///   returns immediately without setting the value.  After the value has been set,
-        ///   the <see cref="Profile.Changed" /> event is raised.
+        ///   The <see cref="Profile.Changing" /> event is raised before setting the value.  
+        ///   If its <see cref="ProfileChangingArgs.Cancel" /> property is set to true, this method 
+        ///   returns immediately without setting the value.  After the value has been set, 
+        ///   the <see cref="Profile.Changed" /> event is raised. 
         ///   <para>
         ///   Note: If <see cref="XmlBased.Buffering" /> is enabled, the value is not actually written to the
         ///   XML file until the buffer is flushed (or closed). </para></remarks>
         /// <seealso cref="GetValue" />
         public override void SetValue(string section, string entry, object value)
         {
-            if(value == null)
+            if (value == null)
             {
                 RemoveEntry(section, entry);
                 return;
@@ -172,16 +174,16 @@ namespace AMS.Profile
             VerifyAndAdjustSection(ref section);
             VerifyAndAdjustEntry(ref entry);
 
-            if(!RaiseChangeEvent(true, ProfileChangeType.SetValue, section, entry, value))
+            if (!RaiseChangeEvent(true, ProfileChangeType.SetValue, section, entry, value))
                 return;
 
             string valueString = value.ToString();
 
-            if((m_buffer == null || m_buffer.IsEmpty) && !File.Exists(Name))
+            if ((m_buffer == null || m_buffer.IsEmpty) && !File.Exists(Name))
             {
                 XmlTextWriter writer = null;
 
-                if(m_buffer == null)
+                if (m_buffer == null)
                     writer = new XmlTextWriter(Name, Encoding);
                 else
                     writer = new XmlTextWriter(new MemoryStream(), Encoding);
@@ -200,7 +202,7 @@ namespace AMS.Profile
                 writer.WriteEndElement();
                 writer.WriteEndElement();
 
-                if(m_buffer != null)
+                if (m_buffer != null)
                     m_buffer.Load(writer);
                 writer.Close();
 
@@ -212,7 +214,7 @@ namespace AMS.Profile
             XmlElement root = doc.DocumentElement;
 
             XmlNode sectionNode = root.SelectSingleNode(GetSectionsPath(section));
-            if(sectionNode == null)
+            if (sectionNode == null)
             {
                 XmlElement element = doc.CreateElement("section");
                 XmlAttribute attribute = doc.CreateAttribute("name");
@@ -222,7 +224,7 @@ namespace AMS.Profile
             }
 
             XmlNode entryNode = sectionNode.SelectSingleNode(GetEntryPath(entry));
-            if(entryNode == null)
+            if (entryNode == null)
             {
                 XmlElement element = doc.CreateElement("entry");
                 XmlAttribute attribute = doc.CreateAttribute("name");
@@ -263,9 +265,10 @@ namespace AMS.Profile
                 XmlElement root = doc.DocumentElement;
 
                 XmlNode entryNode = root.SelectSingleNode(GetSectionsPath(section) + "/" + GetEntryPath(entry));
-                if(entryNode == null) return null;
+                if (entryNode == null) return null;
                 return entryNode.InnerText;
-            } catch
+            }
+            catch
             {
                 return null;
             }
@@ -286,9 +289,9 @@ namespace AMS.Profile
         ///	  Parse error in the XML being loaded from the file or
         ///	  the resulting XML document would not be well formed. </exception>
         /// <remarks>
-        ///   The <see cref="Profile.Changing" /> event is raised before removing the entry.
-        ///   If its <see cref="ProfileChangingArgs.Cancel" /> property is set to true, this method
-        ///   returns immediately without removing the entry.  After the entry has been removed,
+        ///   The <see cref="Profile.Changing" /> event is raised before removing the entry.  
+        ///   If its <see cref="ProfileChangingArgs.Cancel" /> property is set to true, this method 
+        ///   returns immediately without removing the entry.  After the entry has been removed, 
         ///   the <see cref="Profile.Changed" /> event is raised.
         ///   <para>
         ///   Note: If <see cref="XmlBased.Buffering" /> is enabled, the entry is not removed from the
@@ -301,15 +304,15 @@ namespace AMS.Profile
             VerifyAndAdjustEntry(ref entry);
 
             XmlDocument doc = GetXmlDocument();
-            if(doc == null)
+            if (doc == null)
                 return;
 
             XmlElement root = doc.DocumentElement;
             XmlNode entryNode = root.SelectSingleNode(GetSectionsPath(section) + "/" + GetEntryPath(entry));
-            if(entryNode == null)
+            if (entryNode == null)
                 return;
 
-            if(!RaiseChangeEvent(true, ProfileChangeType.RemoveEntry, section, entry, null))
+            if (!RaiseChangeEvent(true, ProfileChangeType.RemoveEntry, section, entry, null))
                 return;
 
             entryNode.ParentNode.RemoveChild(entryNode);
@@ -330,9 +333,9 @@ namespace AMS.Profile
         ///	  Parse error in the XML being loaded from the file or
         ///	  the resulting XML document would not be well formed. </exception>
         /// <remarks>
-        ///   The <see cref="Profile.Changing" /> event is raised before removing the section.
-        ///   If its <see cref="ProfileChangingArgs.Cancel" /> property is set to true, this method
-        ///   returns immediately without removing the section.  After the section has been removed,
+        ///   The <see cref="Profile.Changing" /> event is raised before removing the section.  
+        ///   If its <see cref="ProfileChangingArgs.Cancel" /> property is set to true, this method 
+        ///   returns immediately without removing the section.  After the section has been removed, 
         ///   the <see cref="Profile.Changed" /> event is raised.
         ///   <para>
         ///   Note: If <see cref="XmlBased.Buffering" /> is enabled, the section is not removed from the
@@ -344,18 +347,18 @@ namespace AMS.Profile
             VerifyAndAdjustSection(ref section);
 
             XmlDocument doc = GetXmlDocument();
-            if(doc == null)
+            if (doc == null)
                 return;
 
             XmlElement root = doc.DocumentElement;
-            if(root == null)
+            if (root == null)
                 return;
 
             XmlNode sectionNode = root.SelectSingleNode(GetSectionsPath(section));
-            if(sectionNode == null)
+            if (sectionNode == null)
                 return;
 
-            if(!RaiseChangeEvent(true, ProfileChangeType.RemoveSection, section, null, null))
+            if (!RaiseChangeEvent(true, ProfileChangeType.RemoveSection, section, null, null))
                 return;
 
             root.RemoveChild(sectionNode);
@@ -368,7 +371,7 @@ namespace AMS.Profile
         /// <param name="section">
         ///   The name of the section holding the entries. </param>
         /// <returns>
-        ///   If the section exists, the return value is an array with the names of its entries;
+        ///   If the section exists, the return value is an array with the names of its entries; 
         ///   otherwise it's null. </returns>
         /// <exception cref="InvalidOperationException">
         ///	  <see cref="Profile.Name" /> is null or empty. </exception>
@@ -380,7 +383,7 @@ namespace AMS.Profile
         /// <seealso cref="GetSectionNames" />
         public override string[] GetEntryNames(string section)
         {
-            if(!HasSection(section))
+            if (!HasSection(section))
                 return null;
 
             VerifyAndAdjustSection(ref section);
@@ -389,13 +392,13 @@ namespace AMS.Profile
             XmlElement root = doc.DocumentElement;
 
             XmlNodeList entryNodes = root.SelectNodes(GetSectionsPath(section) + "/entry[@name]");
-            if(entryNodes == null)
+            if (entryNodes == null)
                 return null;
 
             string[] entries = new string[entryNodes.Count];
             int i = 0;
 
-            foreach(XmlNode node in entryNodes)
+            foreach (XmlNode node in entryNodes)
                 entries[i++] = node.Attributes["name"].Value;
 
             return entries;
@@ -415,21 +418,21 @@ namespace AMS.Profile
         public override string[] GetSectionNames()
         {
             XmlDocument doc = GetXmlDocument();
-            if(doc == null)
+            if (doc == null)
                 return null;
 
             XmlElement root = doc.DocumentElement;
-            if(root == null)
+            if (root == null)
                 return null;
 
             XmlNodeList sectionNodes = root.SelectNodes("section[@name]");
-            if(sectionNodes == null)
+            if (sectionNodes == null)
                 return null;
 
             string[] sections = new string[sectionNodes.Count];
             int i = 0;
 
-            foreach(XmlNode node in sectionNodes)
+            foreach (XmlNode node in sectionNodes)
                 sections[i++] = node.Attributes["name"].Value;
 
             return sections;

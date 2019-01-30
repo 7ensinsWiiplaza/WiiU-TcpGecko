@@ -5,10 +5,8 @@ namespace GeckoApp
 {
     public partial class InputBox : Form
     {
-        public static bool Show(String title,
-                                String text,
-                                String defaultValue,
-                                out String value)
+        public static bool Show(string title, string text, string defaultValue,
+            out string value)
         {
             InputBox ib = new InputBox();
             value = string.Empty;
@@ -19,7 +17,7 @@ namespace GeckoApp
 
             DialogResult result = ib.ShowDialog();
 
-            if(result == DialogResult.OK)
+            if (result == DialogResult.OK)
             {
                 value = ib.textField.Text;
                 return true;
@@ -50,12 +48,12 @@ namespace GeckoApp
 
         private void textField_KeyPress(object sender, KeyPressEventArgs e)
         {
-            if(e.KeyChar == 13)
+            if (e.KeyChar == 13)
             {
                 e.Handled = true;
                 btn_OK_Click(sender, e);
             }
-            if(e.KeyChar == 27)
+            if (e.KeyChar == 27)
             {
                 e.Handled = true;
                 btn_Cancel_Click(sender, e);
@@ -64,7 +62,7 @@ namespace GeckoApp
 
         private void InputBox_KeyPress(object sender, KeyPressEventArgs e)
         {
-            if(e.KeyChar == 27)
+            if (e.KeyChar == 27)
                 btn_Cancel_Click(sender, e);
         }
 

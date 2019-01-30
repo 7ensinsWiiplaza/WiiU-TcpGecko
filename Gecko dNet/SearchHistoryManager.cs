@@ -1,16 +1,16 @@
 using Ionic.Zip;
-using Ionic.Zlib;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Threading;
+using TCPTCPGecko;
 
 namespace GeckoApp
 {
     public struct SearchItem
     {
-        public List<UInt32> resultsList;
+        public List<uint> resultsList;
         public Dump searchDump;
         public int index;
     }
@@ -24,14 +24,14 @@ namespace GeckoApp
             BackgroundWriting = false;
         }
 
-        public void SaveSearchBackground(int index, List<UInt32> resultsList, Dump searchDump)
+        public void SaveSearchBackground(int index, List<uint> resultsList, Dump searchDump)
         {
             SearchItem foo = new SearchItem();
             foo.resultsList = new List<uint>(resultsList);
             foo.searchDump = searchDump;
             foo.index = index;
 
-            while(BackgroundWriting) ;
+            while (BackgroundWriting) ;
 
             Thread zipThread = new Thread(new ParameterizedThreadStart(SaveSearchBackground));
 
@@ -51,9 +51,9 @@ namespace GeckoApp
 
         public void SaveHistory(string path, int DumpNum, SearchSize size)
         {
-            using(ZipFile zip = new ZipFile())
+            using (ZipFile zip = new ZipFile())
             {
-                zip.CompressionLevel = CompressionLevel.None;
+                zip.CompressionLevel = Ionic.Zlib.CompressionLevel.None;
                 zip.AddDirectory("DumpHistory");
                 zip.Comment = DumpNum.ToString() + ":" + size.ToString();
 
@@ -63,46 +63,37 @@ namespace GeckoApp
 
         public void LoadHistory(string path, out int DumpNum, out SearchSize size)
         {
-            using(ZipFile zip = ZipFile.Read(path))
+            int retVal;
+            using (ZipFile zip = ZipFile.Read(path))
             {
-                foreach(ZipEntry e in zip)
+                foreach (ZipEntry e in zip)
                 {
                     e.Extract("DumpHistory", ExtractExistingFileAction.OverwriteSilently);
                 }
                 string comment = zip.Comment;
                 string[] split = comment.Split(':');
                 DumpNum = Convert.ToInt32(split[0]);
-                switch(split[1])
+                switch (split[1])
                 {
-                    case "Bit16":
-                        size = SearchSize.Bit16;
-                        break;
-                    case "Bit8":
-                        size = SearchSize.Bit8;
-                        break;
-                    case "Single":
-                        size = SearchSize.Single;
-                        break;
-                    case "Bit32":
-                        size = SearchSize.Bit32;
-                        break;
-                    default:
-                        size = SearchSize.Bit32;
-                        break;
+                    case "Bit16": size = SearchSize.Bit16; break;
+                    case "Bit8": size = SearchSize.Bit8; break;
+                    case "Single": size = SearchSize.Single; break;
+                    case "Bit32": size = SearchSize.Bit32; break;
+                    default: size = SearchSize.Bit32; break;
                 }
             }
         }
 
-        public void SaveSearch(int index, List<UInt32> resultsList, Dump searchDump)
+        public void SaveSearch(int index, List<uint> resultsList, Dump searchDump)
         {
             char delim = Path.DirectorySeparatorChar;
             SaveSearch("DumpHistory" + delim + "DumpHistory" + index + ".zip", resultsList, searchDump);
         }
 
-        public void SaveSearch(string filepath, List<UInt32> resultsList, Dump searchDump)
+        public void SaveSearch(string filepath, List<uint> resultsList, Dump searchDump)
         {
             ZipOutputStream outstream = new ZipOutputStream(filepath);
-            outstream.CompressionLevel = CompressionLevel.BestSpeed;
+            outstream.CompressionLevel = Ionic.Zlib.CompressionLevel.BestSpeed;
             BinaryFormatter formatter = new BinaryFormatter();
 
             outstream.PutNextEntry("dump");
@@ -127,7 +118,7 @@ namespace GeckoApp
 
         public Dump LoadSearchDump(string filepath)
         {
-            while(BackgroundWriting) ;
+            while (BackgroundWriting) ;
 
             ZipInputStream instream = new ZipInputStream(filepath);
             BinaryFormatter formatter = new BinaryFormatter();
@@ -142,15 +133,15 @@ namespace GeckoApp
             return searchDump;
         }
 
-        public List<UInt32> LoadSearchList(int index)
+        public List<uint> LoadSearchList(int index)
         {
             char delim = Path.DirectorySeparatorChar;
             return LoadSearchList("DumpHistory" + delim + "DumpHistory" + index + ".zip");
         }
 
-        public List<UInt32> LoadSearchList(string filepath)
+        public List<uint> LoadSearchList(string filepath)
         {
-            while(BackgroundWriting) ;
+            while (BackgroundWriting) ;
 
             ZipInputStream instream = new ZipInputStream(filepath);
             BinaryFormatter formatter = new BinaryFormatter();
@@ -159,7 +150,7 @@ namespace GeckoApp
 
             instream.GetNextEntry();
 
-            List<UInt32> searchList = (List<UInt32>)formatter.Deserialize(instream);
+            List<uint> searchList = (List<uint>)formatter.Deserialize(instream);
 
             instream.Close();
             instream.Dispose();
@@ -170,8 +161,9 @@ namespace GeckoApp
 
     public class SearchHistoryItem
     {
-        private List<UInt32> resultsList;
+        private List<uint> resultsList;
         private Dump searchDump;
+
 
         public SearchHistoryItem()
         {
@@ -202,9 +194,10 @@ namespace GeckoApp
         public void WriteCompressedZip(string filepath)
         {
             ZipOutputStream outstream = new ZipOutputStream(filepath);
-            outstream.CompressionLevel = CompressionLevel.BestSpeed;
+            outstream.CompressionLevel = Ionic.Zlib.CompressionLevel.BestSpeed;
             BinaryFormatter formatter = new BinaryFormatter();
             outstream.PutNextEntry("dump");
+
 
             DateTime startTime = DateTime.Now;
 
@@ -217,7 +210,7 @@ namespace GeckoApp
 
             startTime = DateTime.Now;
 
-            List<UInt32> copy = new List<uint>(resultsList);
+            List<uint> copy = new List<uint>(resultsList);
 
             endTime = DateTime.Now;
             startTime = DateTime.Now;
@@ -231,16 +224,16 @@ namespace GeckoApp
 
         public void ReadCompressedZip(string filepath)
         {
-            while(BackgroundWriting) ;
+            while (BackgroundWriting) ;
 
             ZipInputStream instream = new ZipInputStream(filepath);
             BinaryFormatter formatter = new BinaryFormatter();
             instream.GetNextEntry();
-            searchDump = new Dump((uint)formatter.Deserialize(instream), (uint)formatter.Deserialize(instream));
+            searchDump = new TCPTCPGecko.Dump((uint)formatter.Deserialize(instream), (uint)formatter.Deserialize(instream));
             instream.Read(searchDump.mem, 0, (int)(searchDump.EndAddress - searchDump.StartAddress));
 
             instream.GetNextEntry();
-            resultsList = (List<uint>)formatter.Deserialize(instream);
+            resultsList = (System.Collections.Generic.List<UInt32>)formatter.Deserialize(instream);
 
             instream.Close();
             instream.Dispose();

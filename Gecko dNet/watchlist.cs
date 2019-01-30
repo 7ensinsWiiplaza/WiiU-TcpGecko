@@ -6,6 +6,7 @@ using System.IO;
 using System.Threading;
 
 using System.Windows.Forms;
+using TCPTCPGecko;
 
 namespace GeckoApp
 {
@@ -19,19 +20,16 @@ namespace GeckoApp
 
     public class WatchEntry
     {
-        public String name { get; private set; }
 
-        public UInt32[] address { get; private set; }
-
+        public string name { get; private set; }
+        public uint[] address { get; private set; }
         public WatchDataSize dataSize { get; private set; }
-
-        public UInt32 updatedAddress { get; set; }
-
+        public uint updatedAddress { get; set; }
         public bool addressAvail { get; set; }
+        public uint lastValue { get; set; }
 
-        public UInt32 lastValue { get; set; }
 
-        public WatchEntry(String name, UInt32[] address, WatchDataSize dataSize)
+        public WatchEntry(string name, uint[] address, WatchDataSize dataSize)
         {
             this.name = name;
             this.address = address;
@@ -44,47 +42,45 @@ namespace GeckoApp
 
     public class WatchList
     {
-        private static bool HardcoreConvert(String input, out UInt32 value)
+        private static bool HardcoreConvert(string input, out uint value)
         {
-            String parsedCode = string.Empty;
+            string parsedCode = string.Empty;
             int i;
 
             value = 0;
 
-            for(i = 0; i < input.Length; i++)
+            for (i = 0; i < input.Length; i++)
             {
-                Char analyze = input.ToUpper()[i];
+                char analyze = input.ToUpper()[i];
 
-                if(Char.IsDigit(analyze) || ((analyze >= 'A') && (analyze <= 'F')))
+                if (char.IsDigit(analyze) || ((analyze >= 'A') && (analyze <= 'F')))
                     parsedCode += analyze;
-                else if(!(analyze == '[' || analyze == ']' || analyze == ')' ||
-                    analyze == '(' ||
-                    analyze == ']' ||
-                    analyze == '}' ||
-                    analyze == '{' ||
-                    analyze == ' '))
+
+                else if (!(analyze == '[' || analyze == ']' || analyze == ')'
+                    || analyze == '(' || analyze == ']' || analyze == '}'
+                    || analyze == '{' || analyze == ' '))
                     return false;
             }
-            if(parsedCode.Length > 8)
+            if (parsedCode.Length > 8)
                 return false;
-            if(parsedCode.Length == 0)
+            if (parsedCode.Length == 0)
                 value = 0;
             else
                 value = Convert.ToUInt32(parsedCode, 16);
             return true;
         }
 
-        private static bool MinusSplit(String input, out UInt32[] splitted)
+        private static bool MinusSplit(string input, out uint[] splitted)
         {
-            String[] minussplit = input.Split(new char[] { '-' });
+            string[] minussplit = input.Split(new char[] { '-' });
             splitted = null;
-            List<UInt32> LAddress = new List<UInt32>();
-            UInt32 convert;
+            List<uint> LAddress = new List<uint>();
+            uint convert;
             bool hcconvert;
-            for(int i = 0; i < minussplit.Length; i++)
+            for (int i = 0; i < minussplit.Length; i++)
             {
                 hcconvert = HardcoreConvert(minussplit[i], out convert);
-                if(!hcconvert)
+                if (!hcconvert)
                     return false;
                 LAddress.Add(convert);
             }
@@ -92,32 +88,31 @@ namespace GeckoApp
             return true;
         }
 
-        public static bool TryStrToAddressList(String input, out UInt32[] address)
+        public static bool TryStrToAddressList(string input, out uint[] address)
         {
-            List<UInt32> LAddress = new List<UInt32>();
-            String[] plussplit = input.Split(new char[]
-                { '+' },
-                                             StringSplitOptions.RemoveEmptyEntries);
+            List<uint> LAddress = new List<uint>();
+            string[] plussplit = input.Split(new char[] { '+' },
+                StringSplitOptions.RemoveEmptyEntries);
 
             address = null;
 
             bool hcConvert;
-            UInt32[] splitted;
-            UInt32 add;
-            for(int i = 0; i < plussplit.Length; i++)
+            uint[] splitted;
+            uint add;
+            for (int i = 0; i < plussplit.Length; i++)
             {
                 hcConvert = MinusSplit(plussplit[i], out splitted);
-                if(!hcConvert)
+                if (!hcConvert)
                     return false;
                 LAddress.Add(splitted[0]);
-                for(int j = 1; j < splitted.Length; j++)
+                for (int j = 1; j < splitted.Length; j++)
                 {
-                    if(splitted[j] == 0)
+                    if (splitted[j] == 0)
                     {
                         LAddress.Add(0);
                         continue;
                     }
-                    add = (UInt32)(0x100000000 - (long)splitted[j]);
+                    add = (uint)(0x100000000 - (long)splitted[j]);
                     LAddress.Add(add);
                 }
             }
@@ -125,22 +120,23 @@ namespace GeckoApp
             return true;
         }
 
-        public static String addressToString(UInt32[] address)
+        public static string addressToString(uint[] address)
         {
-            if(address.Length == 0)
+            if (address.Length == 0)
                 return string.Empty;
-            String output = GlobalFunctions.toHex(address[0]);
-            UInt32 cv;
+            string output = GlobalFunctions.toHex(address[0]);
+            uint cv;
             char op;
-            for(int i = 1; i < address.Length; i++)
+            for (int i = 1; i < address.Length; i++)
             {
                 output = "[" + output + "]";
                 cv = address[i];
-                if(address[i] > 0x80000000)
+                if (address[i] > 0x80000000)
                 {
                     op = '-';
-                    cv = (UInt32)(0x100000000 - (long)cv);
-                } else
+                    cv = (uint)(0x100000000 - (long)cv);
+                }
+                else
                     op = '+';
                 output += op + GlobalFunctions.shortHex(cv);
             }
@@ -156,47 +152,34 @@ namespace GeckoApp
 
         private bool listEnabled;
         private bool listActive;
-
         public bool addressDebug { get; set; }
 
         private bool enableDebug
         {
-            get
-            {
-                return addressDebug && ValidMemory.addressDebug;
-            }
+            get { return addressDebug && ValidMemory.addressDebug; }
         }
 
-        public bool hasContent
-        {
-            get
-            {
-                return addressWatchList.Count > 0;
-            }
-        }
+        public bool hasContent { get { return addressWatchList.Count > 0; } }
 
-        private String ParseValue(UInt32 peekValue, WatchDataSize dataSize, UInt32 add, WatchEntry entry)
+        private string ParseValue(uint peekValue, WatchDataSize dataSize, uint add, WatchEntry entry)
         {
-            String pOutput = string.Empty;
-            UInt32 val;
-            Single floatV;
-            switch(dataSize)
+            string pOutput = string.Empty;
+            uint val;
+            float floatV;
+            switch (dataSize)
             {
                 case WatchDataSize.Bit8:
-                    switch(add)
+                    switch (add)
                     {
                         case 0:
                             val = ((peekValue & 0xFF000000) >> 24);
                             break;
-
                         case 1:
                             val = ((peekValue & 0x00FF0000) >> 16);
                             break;
-
                         case 2:
                             val = ((peekValue & 0x0000FF00) >> 8);
                             break;
-
                         default:
                             val = ((peekValue & 0x000000FF) >> 0);
                             break;
@@ -204,14 +187,12 @@ namespace GeckoApp
                     entry.lastValue = val;
                     pOutput = GlobalFunctions.toHex(val, 2);
                     break;
-
                 case WatchDataSize.Bit16:
-                    switch(add)
+                    switch (add)
                     {
                         case 0:
                             val = ((peekValue & 0xFFFF0000) >> 16);
                             break;
-
                         default:
                             val = ((peekValue & 0x0000FFFF) >> 0);
                             break;
@@ -219,12 +200,10 @@ namespace GeckoApp
                     entry.lastValue = val;
                     pOutput = GlobalFunctions.toHex(val, 4);
                     break;
-
                 case WatchDataSize.Bit32:
                     entry.lastValue = peekValue;
                     pOutput = GlobalFunctions.toHex(peekValue);
                     break;
-
                 default:
                     entry.lastValue = peekValue;
                     floatV = GlobalFunctions.UIntToSingle(peekValue);
@@ -236,21 +215,22 @@ namespace GeckoApp
 
         private struct DoubleString
         {
-            public String address;
-            public String value;
+            public string address;
+            public string value;
         }
 
         public static bool isRowDisplayed(DataGridView varControl, int index)
         {
             bool foo = false;
-            if(varControl.InvokeRequired)
+            if (varControl.InvokeRequired)
             {
                 varControl.Invoke((MethodInvoker)delegate
                 {
                     foo = varControl.Rows[index].Displayed;
                 });
                 return foo;
-            } else
+            }
+            else
             {
                 return varControl.Rows[index].Displayed;
             }
@@ -261,35 +241,33 @@ namespace GeckoApp
             try
             {
                 int i, j;
-                UInt32[] address;
-                UInt32 peekAddress, actAddress, peekValue;
+                uint[] address;
+                uint peekAddress, actAddress, peekValue;
                 WatchDataSize dataSize;
-                UInt32 dumpAnd;
-                String aOutput, vOutput;
-                UInt32 add;
+                uint dumpAnd;
+                string aOutput, vOutput;
+                uint add;
                 bool pointer, vPointer, vAddress;
                 int maxCount = Math.Min(addressWatchList.Count, watchOut.RowCount);
                 DoubleString[] oUp =
                     new DoubleString[maxCount];
-                for(i = 0; i < maxCount; i++)
+                for (i = 0; i < maxCount; i++)
                 {
-                    if(!isRowDisplayed(watchOut, i))
+                    if (!isRowDisplayed(watchOut, i))
                     {
                         continue;
                     }
                     address = addressWatchList[i].address;
                     pointer = address.Length > 1;
                     dataSize = addressWatchList[i].dataSize;
-                    switch(dataSize)
+                    switch (dataSize)
                     {
                         case WatchDataSize.Bit8:
                             dumpAnd = 0xFFFFFFFF;
                             break;
-
                         case WatchDataSize.Bit16:
                             dumpAnd = 0xFFFFFFFE;
                             break;
-
                         default:
                             dumpAnd = 0xFFFFFFFC;
                             break;
@@ -297,14 +275,15 @@ namespace GeckoApp
                     vPointer = true;
                     peekAddress = address[0];
 
-                    for(j = 1; j < address.Length; j++)
+                    for (j = 1; j < address.Length; j++)
                     {
-                        if(ValidMemory.validAddress(peekAddress, enableDebug))
+                        if (ValidMemory.validAddress(peekAddress, enableDebug))
                         {
                             peekAddress &= 0xFFFFFFFC;
                             peekAddress = gecko.peek(peekAddress);
                             peekAddress += address[j];
-                        } else
+                        }
+                        else
                         {
                             vPointer = false;
                             break;
@@ -312,19 +291,20 @@ namespace GeckoApp
                     }
 
                     vAddress = vPointer && ValidMemory.validAddress(peekAddress, enableDebug);
-                    if(pointer)
+                    if (pointer)
                     {
                         aOutput = "P->";
-                        if(vPointer)
+                        if (vPointer)
                             aOutput += GlobalFunctions.toHex(peekAddress);
                         else
                             aOutput += "????????";
-                    } else
+                    }
+                    else
                     {
                         aOutput = GlobalFunctions.toHex(peekAddress);
                     }
 
-                    if(vAddress)
+                    if (vAddress)
                     {
                         actAddress = peekAddress;
                         peekAddress &= 0xFFFFFFFC;
@@ -335,7 +315,8 @@ namespace GeckoApp
 
                         addressWatchList[i].addressAvail = true;
                         addressWatchList[i].updatedAddress = peekAddress + add;
-                    } else
+                    }
+                    else
                     {
                         vOutput = "????????";
                         addressWatchList[i].addressAvail = false;
@@ -343,55 +324,56 @@ namespace GeckoApp
                     oUp[i].address = aOutput;
                     oUp[i].value = vOutput;
                     watchOut.Invoke((MethodInvoker)delegate
-                    {
-                        watchOut.Rows[i].Cells[1].Value = oUp[i].address;
-                        watchOut.Rows[i].Cells[3].Value = oUp[i].value;
-                    });
+                     {
+                         watchOut.Rows[i].Cells[1].Value = oUp[i].address;
+                         watchOut.Rows[i].Cells[3].Value = oUp[i].value;
+                     });
                 }
-            } catch(ETCPGeckoException e)
+
+            }
+            catch (ETCPGeckoException e)
             {
                 listEnabled = false;
                 exceptionHandling.HandleException(e);
-            } catch
+            }
+            catch
             {
             }
         }
 
         private void UpdateListThread()
         {
-            while(listEnabled)
+            while (listEnabled)
             {
-                if(listActive && watchOut.Visible)
+                if (listActive && watchOut.Visible)
                 {
                     UpdateList();
                 }
 
-                Decimal SleepTime = readNumericUpDownDecimal(watchUpDown);
+                decimal SleepTime = readNumericUpDownDecimal(watchUpDown);
                 Thread.Sleep((int)Math.Floor((SleepTime)));
             }
         }
 
-        public static Decimal readNumericUpDownDecimal(NumericUpDown varControl)
+        public static decimal readNumericUpDownDecimal(NumericUpDown varControl)
         {
-            Decimal foo = 0;
-            if(varControl.InvokeRequired)
+            decimal foo = 0;
+            if (varControl.InvokeRequired)
             {
                 varControl.Invoke((MethodInvoker)delegate
                 {
                     foo = varControl.Value;
                 });
                 return foo;
-            } else
+            }
+            else
             {
-                Decimal varDecimal = varControl.Value;
+                decimal varDecimal = varControl.Value;
                 return varDecimal;
             }
         }
 
-        public WatchList(TCPGecko UGecko,
-                         DataGridView UWatchOut,
-                         NumericUpDown UWatchUpDown,
-                         ExceptionHandler UEXCHandler)
+        public WatchList(TCPGecko UGecko, DataGridView UWatchOut, NumericUpDown UWatchUpDown, ExceptionHandler UEXCHandler)
         {
             exceptionHandling = UEXCHandler;
             addressDebug = false;
@@ -422,23 +404,20 @@ namespace GeckoApp
             listManager.Abort();
         }
 
-        public void AddWatch(String name, UInt32[] address, WatchDataSize dataSize)
+        public void AddWatch(string name, uint[] address, WatchDataSize dataSize)
         {
-            String dType;
-            switch(dataSize)
+            string dType;
+            switch (dataSize)
             {
                 case WatchDataSize.Bit8:
                     dType = "8 bit";
                     break;
-
                 case WatchDataSize.Bit16:
                     dType = "16 bit";
                     break;
-
                 case WatchDataSize.Bit32:
                     dType = "32 bit";
                     break;
-
                 default:
                     dType = "Single";
                     break;
@@ -455,7 +434,7 @@ namespace GeckoApp
 
         public void DeleteSelected()
         {
-            for(int i = watchOut.SelectedRows.Count - 1; i >= 0; i--)
+            for (int i = watchOut.SelectedRows.Count - 1; i >= 0; i--)
             {
                 int index = watchOut.SelectedRows[i].Index;
                 addressWatchList.RemoveAt(index);
@@ -466,34 +445,31 @@ namespace GeckoApp
         public bool GetSelected(out WatchEntry entry)
         {
             entry = null;
-            if(watchOut.SelectedRows.Count == 0)
+            if (watchOut.SelectedRows.Count == 0)
                 return false;
             entry = addressWatchList[watchOut.SelectedRows[0].Index];
             return entry.addressAvail;
         }
 
-        public void UpdateEntry(String name, UInt32[] address, WatchDataSize dataSize)
+        public void UpdateEntry(string name, uint[] address, WatchDataSize dataSize)
         {
-            if(watchOut.SelectedRows.Count == 0)
+            if (watchOut.SelectedRows.Count == 0)
                 return;
 
             int index = watchOut.SelectedRows[0].Index;
 
-            String dType;
-            switch(dataSize)
+            string dType;
+            switch (dataSize)
             {
                 case WatchDataSize.Bit8:
                     dType = "8 bit";
                     break;
-
                 case WatchDataSize.Bit16:
                     dType = "16 bit";
                     break;
-
                 case WatchDataSize.Bit32:
                     dType = "32 bit";
                     break;
-
                 default:
                     dType = "Single";
                     break;
@@ -513,55 +489,52 @@ namespace GeckoApp
             watchOut.Rows.Clear();
         }
 
-        public bool LoadFromFile(String fileName, bool merge)
+        public bool LoadFromFile(string fileName, bool merge)
         {
-            if(!File.Exists(fileName))
+            if (!File.Exists(fileName))
                 return false;
 
             Xml watchList = new Xml(fileName);
             watchList.RootName = "watchlist";
-            String[] sections = watchList.GetSectionNames();
+            string[] sections = watchList.GetSectionNames();
 
-            if(sections.Length == 0)
+            if (sections.Length == 0)
                 return false;
 
-            if(!merge)
+            if (!merge)
                 Clear();
 
             Array.Sort(sections);
-            String sectionName, name, addressString;
+            string sectionName, name, addressString;
             int sizeInt;
             WatchDataSize dataSize;
-            UInt32[] address;
+            uint[] address;
 
-            for(int i = 0; i < sections.Length; i++)
+            for (int i = 0; i < sections.Length; i++)
             {
                 sectionName = sections[i];
-                if(!watchList.HasEntry(sections[i], "name"))
+                if (!watchList.HasEntry(sections[i], "name"))
                     continue;
-                if(!watchList.HasEntry(sections[i], "address"))
+                if (!watchList.HasEntry(sections[i], "address"))
                     continue;
 
                 name = watchList.GetValue(sections[i], "name", "Name");
                 addressString = watchList.GetValue(sections[i], "address", "80000000");
-                if(!TryStrToAddressList(addressString, out address))
+                if (!TryStrToAddressList(addressString, out address))
                     continue;
 
                 sizeInt = watchList.GetValue(sections[i], "size", 2);
-                switch(sizeInt)
+                switch (sizeInt)
                 {
                     case 0:
                         dataSize = WatchDataSize.Bit8;
                         break;
-
                     case 1:
                         dataSize = WatchDataSize.Bit16;
                         break;
-
                     case 3:
                         dataSize = WatchDataSize.SingleFp;
                         break;
-
                     default:
                         dataSize = WatchDataSize.Bit32;
                         break;
@@ -573,38 +546,34 @@ namespace GeckoApp
             return true;
         }
 
-        public void SaveToFile(String fileName)
+        public void SaveToFile(string fileName)
         {
-            if(File.Exists(fileName))
+            if (File.Exists(fileName))
                 File.Delete(fileName);
 
             Xml watchList = new Xml(fileName);
             watchList.RootName = "watchlist";
 
             WatchEntry current;
-            String section;
-            for(int i = 0; i < addressWatchList.Count; i++)
+            string section;
+            for (int i = 0; i < addressWatchList.Count; i++)
             {
                 current = addressWatchList[i];
-                section = "watch" + String.Format("{0:000}", i);
+                section = "watch" + string.Format("{0:000}", i);
                 watchList.SetValue(section, "name", current.name);
-                watchList.SetValue(section,
-                                   "address",
-                                   addressToString(current.address));
-                switch(current.dataSize)
+                watchList.SetValue(section, "address",
+                    addressToString(current.address));
+                switch (current.dataSize)
                 {
                     case WatchDataSize.Bit8:
                         watchList.SetValue(section, "size", 0);
                         break;
-
                     case WatchDataSize.Bit16:
                         watchList.SetValue(section, "size", 1);
                         break;
-
                     case WatchDataSize.SingleFp:
                         watchList.SetValue(section, "size", 3);
                         break;
-
                     default:
                         watchList.SetValue(section, "size", 2);
                         break;

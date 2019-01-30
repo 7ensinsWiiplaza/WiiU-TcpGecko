@@ -9,7 +9,7 @@ namespace AMS.Profile
     /// <summary>
     ///   Abstract base class for all XML-based Profile classes. </summary>
     /// <remarks>
-    ///   This class provides common methods and properties for the XML-based Profile classes
+    ///   This class provides common methods and properties for the XML-based Profile classes 
     ///   (<see cref="Xml" />, <see cref="Config" />). </remarks>
     public abstract class XmlBased : Profile
     {
@@ -26,7 +26,8 @@ namespace AMS.Profile
         ///   Initializes a new instance of the XmlBased class by setting the <see cref="Profile.Name" /> to the given file name. </summary>
         /// <param name="fileName">
         ///   The name of the file to initialize the <see cref="Profile.Name" /> property with. </param>
-        protected XmlBased(string fileName) : base(fileName)
+        protected XmlBased(string fileName) :
+            base(fileName)
         {
         }
 
@@ -34,7 +35,8 @@ namespace AMS.Profile
         ///   Initializes a new instance of the XmlBased class based on another XmlBased object. </summary>
         /// <param name="profile">
         ///   The XmlBased profile object whose properties and events are used to initialize the object being constructed. </param>
-        protected XmlBased(XmlBased profile) : base(profile)
+        protected XmlBased(XmlBased profile) :
+            base(profile)
         {
             m_encoding = profile.Encoding;
         }
@@ -42,8 +44,8 @@ namespace AMS.Profile
         /// <summary>
         ///   Retrieves an XmlDocument object based on the <see cref="Profile.Name" /> of the file. </summary>
         /// <returns>
-        ///   If <see cref="Buffering" /> is not enabled, the return value is the XmlDocument object loaded with the file,
-        ///   or null if the file does not exist. If <see cref="Buffering" /> is enabled, the return value is an
+        ///   If <see cref="Buffering" /> is not enabled, the return value is the XmlDocument object loaded with the file, 
+        ///   or null if the file does not exist. If <see cref="Buffering" /> is enabled, the return value is an 
         ///   XmlDocument object, which will be loaded with the file if it already exists.</returns>
         /// <exception cref="InvalidOperationException">
         ///	  <see cref="Profile.Name" /> is null or empty. </exception>
@@ -51,11 +53,11 @@ namespace AMS.Profile
         ///	  Parse error in the XML being loaded from the file. </exception>
         protected XmlDocument GetXmlDocument()
         {
-            if(m_buffer != null)
+            if (m_buffer != null)
                 return m_buffer.XmlDocument;
 
             VerifyName();
-            if(!File.Exists(Name))
+            if (!File.Exists(Name))
                 return null;
 
             XmlDocument doc = new XmlDocument();
@@ -68,22 +70,23 @@ namespace AMS.Profile
         /// <exception cref="XmlException">
         ///	  The resulting XML document would not be well formed. </exception>
         /// <remarks>
-        ///   If <see cref="Buffering" /> is enabled, this method sets the <see cref="XmlBuffer.NeedsFlushing" /> property to true
+        ///   If <see cref="Buffering" /> is enabled, this method sets the <see cref="XmlBuffer.NeedsFlushing" /> property to true 
         ///   and the changes are not saved until the buffer is flushed (or closed).  If the Buffer is not active
         ///   the contents of the XmlDocument object are saved to the file. </remarks>
         protected void Save(XmlDocument doc)
         {
-            if(m_buffer != null)
+            if (m_buffer != null)
                 m_buffer.NeedsFlushing = true;
             else
                 doc.Save(Name);
+
         }
 
         /// <summary>
         ///   Activates buffering on this XML-based profile object, if not already active. </summary>
         /// <param name="lockFile">
-        ///   If true, the file is locked when the buffer is activated so that no other processes can write to it.
-        ///   If false, other processes can continue writing to it and the actual contents of the file can get
+        ///   If true, the file is locked when the buffer is activated so that no other processes can write to it.  
+        ///   If false, other processes can continue writing to it and the actual contents of the file can get 
         ///   out of synch with the contents of the buffer. </param>
         /// <returns>
         ///   The return value is an <see cref="XmlBuffer" /> object that may be used to control the buffer used
@@ -102,10 +105,10 @@ namespace AMS.Profile
         ///   The XmlBuffer object is created and attached to this XmlBased profile object, if not already present.
         ///   If it is already attached, the same object is returned in subsequent calls, until the object is closed. </para>
         ///   <para>
-        ///   Since the XmlBuffer class implements <see cref="IDisposable" />, the <c>using</c> keyword in C# can be
-        ///   used to conveniently create the buffer, write to it, and then automatically flush it (when it's disposed).
+        ///   Since the XmlBuffer class implements <see cref="IDisposable" />, the <c>using</c> keyword in C# can be 
+        ///   used to conveniently create the buffer, write to it, and then automatically flush it (when it's disposed).  
         ///   Here's an example:
-        ///   <code>
+        ///   <code> 
         ///   using (profile.Buffer(true))
         ///   {
         ///      profile.SetValue("A Section", "An Entry", "A Value");
@@ -117,7 +120,7 @@ namespace AMS.Profile
         /// <seealso cref="Buffering" />
         public XmlBuffer Buffer(bool lockFile)
         {
-            if(m_buffer == null)
+            if (m_buffer == null)
                 m_buffer = new XmlBuffer(this, lockFile);
             return m_buffer;
         }
@@ -141,13 +144,13 @@ namespace AMS.Profile
         ///   The XmlBuffer object is created and attached to this XmlBased profile object, if not already present.
         ///   If it is already attached, the same object is returned in subsequent calls, until the object is closed. </para>
         ///   <para>
-        ///   If the buffer is created, the underlying file (if any) is locked so that no other processes
+        ///   If the buffer is created, the underlying file (if any) is locked so that no other processes 
         ///   can write to it. This is equivalent to calling Buffer(true). </para>
         ///   <para>
-        ///   Since the XmlBuffer class implements <see cref="IDisposable" />, the <c>using</c> keyword in C# can be
-        ///   used to conveniently create the buffer, write to it, and then automatically flush it (when it's disposed).
+        ///   Since the XmlBuffer class implements <see cref="IDisposable" />, the <c>using</c> keyword in C# can be 
+        ///   used to conveniently create the buffer, write to it, and then automatically flush it (when it's disposed).  
         ///   Here's an example:
-        ///   <code>
+        ///   <code> 
         ///   using (profile.Buffer())
         ///   {
         ///      profile.SetValue("A Section", "An Entry", "A Value");
@@ -169,7 +172,7 @@ namespace AMS.Profile
         ///   are all done through it.  This dramatically increases the performance of those operations, but it requires
         ///   that the buffer is flushed (or closed) to commit any changes done to the underlying file.
         ///   <para>
-        ///   This property may be used to determine if the buffer is active without actually activating it.
+        ///   This property may be used to determine if the buffer is active without actually activating it.  
         ///   The <see cref="Buffer" /> method activates the buffer, which then needs to be flushed (or closed) to update the file. </para></remarks>
         /// <seealso cref="Buffer" />
         /// <seealso cref="XmlBuffer" />
@@ -186,12 +189,12 @@ namespace AMS.Profile
         /// <exception cref="InvalidOperationException">
         ///   Setting this property if <see cref="Profile.ReadOnly" /> is true. </exception>
         /// <remarks>
-        ///   By default this property is set to <see cref="System.Text.Encoding.UTF8">Encoding.UTF8</see>, but it is only
-        ///   used when the file is not found and needs to be created to write the value.
-        ///   If the file exists, the existing encoding is used and this value is ignored.
-        ///   The <see cref="Profile.Changing" /> event is raised before changing this property.
-        ///   If its <see cref="ProfileChangingArgs.Cancel" /> property is set to true, this method
-        ///   returns immediately without changing this property.  After the property has been changed,
+        ///   By default this property is set to <see cref="System.Text.Encoding.UTF8">Encoding.UTF8</see>, but it is only 
+        ///   used when the file is not found and needs to be created to write the value. 
+        ///   If the file exists, the existing encoding is used and this value is ignored. 
+        ///   The <see cref="Profile.Changing" /> event is raised before changing this property.  
+        ///   If its <see cref="ProfileChangingArgs.Cancel" /> property is set to true, this method 
+        ///   returns immediately without changing this property.  After the property has been changed, 
         ///   the <see cref="Profile.Changed" /> event is raised. </remarks>
         public Encoding Encoding
         {
@@ -202,10 +205,10 @@ namespace AMS.Profile
             set
             {
                 VerifyNotReadOnly();
-                if(m_encoding == value)
+                if (m_encoding == value)
                     return;
 
-                if(!RaiseChangeEvent(true, ProfileChangeType.Other, null, "Encoding", value))
+                if (!RaiseChangeEvent(true, ProfileChangeType.Other, null, "Encoding", value))
                     return;
 
                 m_encoding = value;
@@ -220,7 +223,7 @@ namespace AMS.Profile
     ///   This class provides buffering functionality for the <see cref="XmlBased" /> classes.
     ///   <i>Buffering</i> refers to the caching of an <see cref="XmlDocument" /> object so that subsequent reads or writes
     ///   are all done through it.  This dramatically increases the performance of those operations, but it requires
-    ///   that the buffer is flushed (or closed) to commit any changes done to the underlying file.
+    ///   that the buffer is flushed (or closed) to commit any changes done to the underlying file. 
     ///   <para>
     ///   Since an XmlBased object can only have one buffer attached to it at a time, this class may not
     ///   be instanciated directly.  Instead, use the <see cref="XmlBased.Buffer" /> method of the profile object. </para></remarks>
@@ -248,14 +251,11 @@ namespace AMS.Profile
         {
             m_profile = profile;
 
-            if(lockFile)
+            if (lockFile)
             {
                 m_profile.VerifyName();
-                if(File.Exists(m_profile.Name))
-                    m_file = new FileStream(m_profile.Name,
-                                            FileMode.Open,
-                                            m_profile.ReadOnly ? FileAccess.Read : FileAccess.ReadWrite,
-                                            FileShare.Read);
+                if (File.Exists(m_profile.Name))
+                    m_file = new FileStream(m_profile.Name, FileMode.Open, m_profile.ReadOnly ? FileAccess.Read : FileAccess.ReadWrite, FileShare.Read);
             }
         }
 
@@ -284,18 +284,19 @@ namespace AMS.Profile
         {
             get
             {
-                if(m_doc == null)
+                if (m_doc == null)
                 {
                     m_doc = new XmlDocument();
 
-                    if(m_file != null)
+                    if (m_file != null)
                     {
                         m_file.Position = 0;
                         m_doc.Load(m_file);
-                    } else
+                    }
+                    else
                     {
                         m_profile.VerifyName();
-                        if(File.Exists(m_profile.Name))
+                        if (File.Exists(m_profile.Name))
                             m_doc.Load(m_profile.Name);
                     }
                 }
@@ -309,7 +310,7 @@ namespace AMS.Profile
         {
             get
             {
-                return XmlDocument.InnerXml == String.Empty;
+                return XmlDocument.InnerXml == string.Empty;
             }
         }
 
@@ -317,8 +318,8 @@ namespace AMS.Profile
         ///   Gets whether changes have been made to the XmlDocument object that require
         ///   the buffer to be flushed so that the file gets updated. </summary>
         /// <remarks>
-        ///   This property returns true when the XmlDocument object has been changed and the
-        ///   <see cref="Flush" /> (or <see cref="Close" />) method needs to be called to
+        ///   This property returns true when the XmlDocument object has been changed and the 
+        ///   <see cref="Flush" /> (or <see cref="Close" />) method needs to be called to 
         ///   update the file. </remarks>
         /// <seealso cref="Flush" />
         /// <seealso cref="Close" />
@@ -342,9 +343,9 @@ namespace AMS.Profile
         /// <summary>
         ///   Writes the contents of the XmlDocument object to the file associated with this buffer's profile. </summary>
         /// <remarks>
-        ///   This method may be used to explictly commit any changes made to the <see cref="XmlBased" /> profile from the time
+        ///   This method may be used to explictly commit any changes made to the <see cref="XmlBased" /> profile from the time 
         ///   the buffer was last flushed or created.  It writes the contents of the XmlDocument object to the profile's file.
-        ///   When the buffer is being closed (with <see cref="Close" /> or <see cref="Dispose" />) this method is
+        ///   When the buffer is being closed (with <see cref="Close" /> or <see cref="Dispose" />) this method is 
         ///   called if <see cref="NeedsFlushing" /> is true. After the buffer is closed, this method may not be called. </remarks>
         /// <exception cref="InvalidOperationException">
         ///   This object is closed. </exception>
@@ -352,13 +353,13 @@ namespace AMS.Profile
         /// <seealso cref="Reset" />
         public void Flush()
         {
-            if(m_profile == null)
+            if (m_profile == null)
                 throw new InvalidOperationException("Cannot flush an XmlBuffer object that has been closed.");
 
-            if(m_doc == null)
+            if (m_doc == null)
                 return;
 
-            if(m_file == null)
+            if (m_file == null)
                 m_doc.Save(m_profile.Name);
             else
             {
@@ -372,7 +373,7 @@ namespace AMS.Profile
         /// <summary>
         ///   Resets the buffer by discarding its XmlDocument object. </summary>
         /// <remarks>
-        ///   This method may be used to rollback any changes made to the <see cref="XmlBased" /> profile from the time
+        ///   This method may be used to rollback any changes made to the <see cref="XmlBased" /> profile from the time 
         ///   the buffer was last flushed or created. After the buffer is closed, this method may not be called. </remarks>
         /// <exception cref="InvalidOperationException">
         ///   This object is closed. </exception>
@@ -380,7 +381,7 @@ namespace AMS.Profile
         /// <seealso cref="Close" />
         public void Reset()
         {
-            if(m_profile == null)
+            if (m_profile == null)
                 throw new InvalidOperationException("Cannot reset an XmlBuffer object that has been closed.");
 
             m_doc = null;
@@ -388,31 +389,31 @@ namespace AMS.Profile
         }
 
         /// <summary>
-        ///   Closes the buffer by flushing the contents of its XmlDocument object (if necessary) and dettaching itself
+        ///   Closes the buffer by flushing the contents of its XmlDocument object (if necessary) and dettaching itself 
         ///   from its <see cref="XmlBased" /> profile. </summary>
         /// <remarks>
-        ///   This method may be used to explictly deactivate the <see cref="XmlBased" /> profile buffer.
-        ///   This means that the buffer is flushed (if <see cref="NeedsFlushing" /> is true) and it gets
+        ///   This method may be used to explictly deactivate the <see cref="XmlBased" /> profile buffer. 
+        ///   This means that the buffer is flushed (if <see cref="NeedsFlushing" /> is true) and it gets 
         ///   dettached from the profile. The <see cref="Dispose" /> method automatically calls this method. </remarks>
         /// <seealso cref="Flush" />
         /// <seealso cref="Dispose" />
         public void Close()
         {
-            if(m_profile == null)
+            if (m_profile == null)
                 return;
 
-            if(NeedsFlushing)
+            if (NeedsFlushing)
                 Flush();
 
             m_doc = null;
 
-            if(m_file != null)
+            if (m_file != null)
             {
                 m_file.Close();
                 m_file = null;
             }
 
-            if(m_profile != null)
+            if (m_profile != null)
                 m_profile.m_buffer = null;
             m_profile = null;
         }

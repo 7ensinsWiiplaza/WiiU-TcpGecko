@@ -20,37 +20,34 @@ namespace GeckoApp
         TIFF
     }
 
-    internal class Screenshots
+    class Screenshots
     {
         public static ImageCodecInfo getImageCodec(ScreenshotFormat format)
         {
             ImageCodecInfo[] formats =
                 ImageCodecInfo.GetImageDecoders();
 
-            String expectedMime;
-            switch(format)
+            string expectedMime;
+            switch (format)
             {
                 case ScreenshotFormat.BMP:
                     expectedMime = "image/bmp";
                     break;
-
                 case ScreenshotFormat.JPEG:
                     expectedMime = "image/jpeg";
                     break;
-
                 case ScreenshotFormat.TIFF:
                     expectedMime = "image/tiff";
                     break;
-
                 default:
                     expectedMime = "image/png";
                     break;
             }
 
             ImageCodecInfo result = null;
-            for(int i = 0; i < formats.Length; i++)
+            for (int i = 0; i < formats.Length; i++)
             {
-                if(formats[i].MimeType.ToLower() == expectedMime)
+                if (formats[i].MimeType.ToLower() == expectedMime)
                 {
                     result = formats[i];
                     break;
@@ -63,18 +60,16 @@ namespace GeckoApp
         public static EncoderParameters getParameters(int jpegQuality, ScreenshotFormat format)
         {
             EncoderParameters result;
-            switch(format)
+            switch (format)
             {
                 case ScreenshotFormat.BMP:
                     result = new EncoderParameters(1);
                     result.Param[0] = new EncoderParameter(Encoder.ColorDepth, 24);
                     break;
-
                 case ScreenshotFormat.JPEG:
                     result = new EncoderParameters(1);
                     result.Param[0] = new EncoderParameter(Encoder.Quality, jpegQuality);
                     break;
-
                 case ScreenshotFormat.TIFF:
                     result = new EncoderParameters(2);
                     EncoderParameter parameter =
@@ -83,7 +78,6 @@ namespace GeckoApp
                     parameter = new EncoderParameter(Encoder.SaveFlag, (long)EncoderValue.LastFrame);
                     result.Param[1] = parameter;
                     break;
-
                 default:
                     result = new EncoderParameters(2);
                     result.Param[0] = new EncoderParameter(Encoder.Compression, (long)EncoderValue.CompressionCCITT4);
@@ -95,30 +89,31 @@ namespace GeckoApp
 
         public static Image resizeImage(Image imgToResize, ScreenshotSizingMode sizing)
         {
-            if(sizing == ScreenshotSizingMode.None)
+            if (sizing == ScreenshotSizingMode.None)
                 return imgToResize;
 
             int cWidth = imgToResize.Width;
             int cHeight = imgToResize.Height;
 
             double resize;
-            if(sizing == ScreenshotSizingMode.StretchToFullscreen)
+            if (sizing == ScreenshotSizingMode.StretchToFullscreen)
                 resize = 4.0 / 3.0;
             else
                 resize = 16.0 / 9.0;
 
             double pictureAspect = (double)cWidth / (double)cHeight;
 
-            if(pictureAspect <= resize * 1.02 && pictureAspect >= resize * 0.98)
+            if (pictureAspect <= resize * 1.02 && pictureAspect >= resize * 0.98)
                 return imgToResize;
 
             int nWidth, nHeight;
 
-            if(resize > pictureAspect)
+            if (resize > pictureAspect)
             {
                 nHeight = cHeight;
                 nWidth = (int)Math.Round((double)cHeight * resize);
-            } else
+            }
+            else
             {
                 nWidth = cWidth;
                 nHeight = (int)Math.Round((double)cWidth / resize);

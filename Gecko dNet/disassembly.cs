@@ -1,16 +1,16 @@
-﻿using GeckoApp.Properties;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Threading;
 using System.Windows.Forms;
+
+using TCPTCPGecko;
 
 namespace GeckoApp
 {
-    internal class Disassembly
+    class Disassembly
     {
-        private String vdappPath;
+        private string vdappPath;
         private TCPGecko gecko;
         private ListBox mainBox;
         private VScrollBar scrollbar;
@@ -21,25 +21,19 @@ namespace GeckoApp
         private TextBox asAddress;
         private TextBox asText;
 
-        private UInt32 cAddress;
+        private uint cAddress;
 
-        public UInt32 disAddress { get; private set; } = 0;
+        public uint disAddress { get; private set; } = 0;
 
-        private String GAs, GLd, GOc;
+        private string GAs, GLd, GOc;
 
-        public Disassembly(TCPGecko UGecko,
-                           String UVdappPath,
-                           ListBox UMainBox,
-                           VScrollBar UScroll,
-                           TextBox UAInput,
-                           TextBox UASAddress,
-                           TextBox UASText,
-                           ExceptionHandler UEXCHandler)
+        public Disassembly(TCPGecko UGecko, string UVdappPath, ListBox UMainBox,
+            VScrollBar UScroll, TextBox UAInput, TextBox UASAddress, TextBox UASText, ExceptionHandler UEXCHandler)
         {
             gecko = UGecko;
             exceptionHandling = UEXCHandler;
             vdappPath = UVdappPath;
-            if(!GlobalFunctions.tryToHex(Settings.Default.MemViewAddr, out cAddress))
+            if (!GlobalFunctions.tryToHex(GeckoApp.Properties.Settings.Default.MemViewAddr, out cAddress))
             {
                 cAddress = 0x80003100;
             }
@@ -67,9 +61,9 @@ namespace GeckoApp
 
         private void ChangeBy(int offset)
         {
-            UInt32 oAddress = cAddress;
-            cAddress = (UInt32)((long)cAddress + offset);
-            if(!ValidMemory.validAddress(cAddress))
+            uint oAddress = cAddress;
+            cAddress = (uint)((long)cAddress + offset);
+            if (!ValidMemory.validAddress(cAddress))
             {
                 cAddress = oAddress;
                 return;
@@ -83,50 +77,51 @@ namespace GeckoApp
         {
             int index = mainBox.SelectedIndex;
 
-            if(index == 0 && e.KeyCode == Keys.Up)
+            if (index == 0 && e.KeyCode == Keys.Up)
             {
                 ChangeBy(-4);
-                if(mainBox.Items.Count > 0)
+                if (mainBox.Items.Count > 0)
                     mainBox.SelectedIndex = 0;
             }
 
-            if(index == (mainBox.Items.Count - 1) && e.KeyCode == Keys.Down)
+            if (index == (mainBox.Items.Count - 1) && e.KeyCode == Keys.Down)
             {
                 ChangeBy(4);
                 mainBox.SelectedIndex = mainBox.Items.Count - 1;
             }
 
-            if(e.KeyCode == Keys.PageUp)
+            if (e.KeyCode == Keys.PageUp)
             {
                 ChangeBy(-0x40);
             }
 
-            if(e.KeyCode == Keys.PageDown)
+            if (e.KeyCode == Keys.PageDown)
             {
                 ChangeBy(0x40);
             }
+
         }
 
         private void MainBoxDoubleClick(object sender, EventArgs e)
         {
             int index = mainBox.SelectedIndex;
 
-            if(index == -1)
+            if (index == -1)
             {
                 return;
             }
 
-            String assembly = mainBox.Items[index].ToString();
+            string assembly = mainBox.Items[index].ToString();
             assembly = assembly.Substring(20, assembly.Length - 20);
-            String[] sep = assembly.Split(new char[1] { '\t' }, StringSplitOptions.RemoveEmptyEntries);
+            string[] sep = assembly.Split(new char[1] { '\t' }, StringSplitOptions.RemoveEmptyEntries);
 
             sep[0] = sep[0].ToLower();
-            if(sep[0].StartsWith("b") && sep.Length > 1)
+            if (sep[0].StartsWith("b") && sep.Length > 1)
             {
                 sep[1] = sep[1].Substring(sep[1].IndexOf("0x"));
 
-                UInt32 bAddress;
-                if(GlobalFunctions.tryToHex(sep[1], out bAddress) && ValidMemory.validAddress(bAddress))
+                uint bAddress;
+                if (GlobalFunctions.tryToHex(sep[1], out bAddress) && ValidMemory.validAddress(bAddress))
                 {
                     DissToBox(bAddress);
                 }
@@ -137,22 +132,22 @@ namespace GeckoApp
         {
             int index = mainBox.SelectedIndex;
 
-            if(index == -1)
+            if (index == -1)
             {
                 asAddress.Text = GlobalFunctions.toHex(cAddress);
                 asText.Text = string.Empty;
                 return;
             }
 
-            UInt32 address = cAddress + (UInt32)index * 4;
+            uint address = cAddress + (uint)index * 4;
             asAddress.Text = GlobalFunctions.toHex(address);
             disAddress = address;
 
-            String assembly = mainBox.Items[index].ToString();
+            string assembly = mainBox.Items[index].ToString();
             assembly = assembly.Substring(20, assembly.Length - 20);
-            String[] sep = assembly.Split(new char[1] { '\t' }, StringSplitOptions.RemoveEmptyEntries);
+            string[] sep = assembly.Split(new char[1] { '\t' }, StringSplitOptions.RemoveEmptyEntries);
             assembly = string.Empty;
-            for(int i = 0; i < sep.Length; i++)
+            for (int i = 0; i < sep.Length; i++)
                 assembly += sep[i] + " ";
             asText.Text = assembly;
         }
@@ -160,56 +155,62 @@ namespace GeckoApp
         private void Scrolling(object sender, ScrollEventArgs e)
         {
             ScrollEventType t = e.Type;
-            if(t == ScrollEventType.SmallIncrement)
+            if (t == ScrollEventType.SmallIncrement)
             {
                 ChangeBy(4);
-            } else if(t == ScrollEventType.LargeIncrement)
+            }
+            else if (t == ScrollEventType.LargeIncrement)
             {
                 ChangeBy(0x20);
-            } else if(t == ScrollEventType.SmallDecrement)
+            }
+            else if (t == ScrollEventType.SmallDecrement)
             {
                 ChangeBy(-4);
-            } else if(t == ScrollEventType.LargeDecrement)
+            }
+            else if (t == ScrollEventType.LargeDecrement)
             {
                 ChangeBy(-0x20);
             }
             scrollbar.Value = 1;
         }
 
-        public String[] Disassemble(UInt32 address, int commands)
+        public string[] Disassemble(uint address, int commands)
         {
-            List<String> result = new List<String>();
+            List<string> result = new List<string>();
 
             address = address & 0xFFFFFFFC;
-            UInt32 eAddress = address + (UInt32)commands * 4;
+            uint eAddress = address + (uint)commands * 4;
 
-            if(!File.Exists(vdappPath))
+            if (!File.Exists(vdappPath))
             {
 #if MONO
 				return new String[] { "vdappc not found!" };
 #else
-                return new String[] { "vdappc.exe not found!" };
+                return new string[] { "vdappc.exe not found!" };
 #endif
             }
 
             FileStream values;
-            string filename = Path.GetTempFileName();
+            string filename = System.IO.Path.GetTempFileName();
             try
             {
                 values = new FileStream(filename, FileMode.Create);
-            } catch(Exception)
+            }
+            catch (Exception e)
             {
-                return new String[] { "Couldn't open diss.bin!" };
+                return new string[] { "Couldn't open diss.bin!" };
             }
 
             try
             {
                 gecko.Dump(address, eAddress, values);
-            } catch(ETCPGeckoException e)
+            }
+            catch (ETCPGeckoException e)
             {
                 exceptionHandling.HandleException(e);
                 return result.ToArray();
-            } finally
+            }
+            finally
             {
                 values.Close();
             }
@@ -223,7 +224,7 @@ namespace GeckoApp
             proc.StartInfo.CreateNoWindow = true;
             proc.Start();
 
-            while(!proc.StandardOutput.EndOfStream)
+            while (!proc.StandardOutput.EndOfStream)
                 result.Add(proc.StandardOutput.ReadLine());
             proc.WaitForExit();
 
@@ -234,18 +235,18 @@ namespace GeckoApp
             return result.ToArray();
         }
 
-        public String[] DissToBox(UInt32 address)
+        public string[] DissToBox(uint address)
         {
             cAddress = address & 0xFFFFFFFC;
-            String[] assembly = Disassemble(address, 60);
+            string[] assembly = Disassemble(address, 60);
 
             mainBox.Items.Clear();
-            for(int i = 0; i < assembly.Length; i++)
+            for (int i = 0; i < assembly.Length; i++)
                 mainBox.Items.Add(assembly[i]);
 
             adressInput.Text = GlobalFunctions.toHex(cAddress);
 
-            if(mainBox.Items.Count > 0)
+            if (mainBox.Items.Count > 0)
             {
                 mainBox.SelectedIndex = 0;
             }
@@ -253,7 +254,7 @@ namespace GeckoApp
             return assembly;
         }
 
-        public String[] DissToBox()
+        public string[] DissToBox()
         {
             return DissToBox(cAddress);
         }
@@ -268,43 +269,44 @@ namespace GeckoApp
             ChangeBy(-0x10);
         }
 
-        private bool isBranch(String command)
+        private bool isBranch(string command)
         {
             return (command.ToLower()[0] == 'b');
         }
 
-        private bool extractTargetAddress(UInt32 address, ref String command)
+        private bool extractTargetAddress(uint address, ref string command)
         {
-            if(command.ToLower().Contains("lr") || command.Contains("ctr"))
+            if (command.ToLower().Contains("lr") || command.Contains("ctr"))
                 return true;
-            String[] parts = command.ToLower().Split(new char[1] { ' ' });
-            String[] orgparts = command.Split(new char[1] { ' ' });
-            String numeric = parts[parts.Length - 1];
-            String number;
+            string[] parts = command.ToLower().Split(new char[1] { ' ' });
+            string[] orgparts = command.Split(new char[1] { ' ' });
+            string numeric = parts[parts.Length - 1];
+            string number;
             bool hex;
-            if(numeric.Substring(0, 2) == "0x")
+            if (numeric.Substring(0, 2) == "0x")
             {
                 number = numeric.Substring(2, numeric.Length - 2);
                 hex = true;
-            } else
+            }
+            else
             {
                 number = numeric;
                 hex = false;
             }
 
-            UInt32 tAddress;
+            uint tAddress;
             bool result;
-            if(hex)
+            if (hex)
                 result = GlobalFunctions.tryToHex(number, out tAddress);
             else
-                result = UInt32.TryParse(number, out tAddress);
+                result = uint.TryParse(number, out tAddress);
 
-            if(result)
+            if (result)
             {
-                Int32 offset = (Int32)((long)tAddress - (long)address);
+                int offset = (int)((long)tAddress - (long)address);
                 orgparts[orgparts.Length - 1] = "0x" + GlobalFunctions.toHex(offset);
                 command = string.Empty;
-                for(int i = 0; i < orgparts.Length; i++)
+                for (int i = 0; i < orgparts.Length; i++)
                     command += orgparts[i] + " ";
                 command = command.Trim();
             }
@@ -312,21 +314,21 @@ namespace GeckoApp
             return result;
         }
 
-        public void Assemble(UInt32 address, String command)
+        public void Assemble(uint address, string command)
         {
-            if(!File.Exists(GAs))
+            if (!File.Exists(GAs))
             {
                 MessageBox.Show(GAs + " not found! Cannot assemble!");
                 return;
             }
 
-            if(!File.Exists(GLd))
+            if (!File.Exists(GLd))
             {
                 MessageBox.Show(GLd + " not found! Cannot assemble!");
                 return;
             }
 
-            if(!File.Exists(GOc))
+            if (!File.Exists(GOc))
             {
                 MessageBox.Show(GOc + " not found! Cannot assemble!");
                 return;
@@ -334,9 +336,9 @@ namespace GeckoApp
 
             command = command.Trim();
 
-            if(isBranch(command))
+            if (isBranch(command))
             {
-                if(!extractTargetAddress(address, ref command))
+                if (!extractTargetAddress(address, ref command))
                 {
                     MessageBox.Show("Command parsing error!");
                     return;
@@ -355,16 +357,16 @@ namespace GeckoApp
             proc.StartInfo.CreateNoWindow = true;
             proc.StartInfo.RedirectStandardError = true;
             proc.Start();
-            String output = String.Empty;
-            while(!proc.StandardError.EndOfStream)
+            string output = string.Empty;
+            while (!proc.StandardError.EndOfStream)
                 output += proc.StandardError.ReadLine() + "\n";
             proc.WaitForExit();
             int exitCode = proc.ExitCode;
             proc.Close();
             File.Delete("ass.txt");
-            if(exitCode != 0 || !File.Exists("ass.o"))
+            if (exitCode != 0 || !File.Exists("ass.o"))
             {
-                if(File.Exists("ass.o"))
+                if (File.Exists("ass.o"))
                     File.Delete("ass.o");
                 MessageBox.Show(output);
                 return;
@@ -378,17 +380,17 @@ namespace GeckoApp
             proc.StartInfo.CreateNoWindow = true;
             proc.StartInfo.RedirectStandardError = true;
             proc.Start();
-            output = String.Empty;
-            while(!proc.StandardError.EndOfStream)
+            output = string.Empty;
+            while (!proc.StandardError.EndOfStream)
                 output += proc.StandardError.ReadLine() + "\n";
             proc.WaitForExit();
 
             exitCode = proc.ExitCode;
             proc.Close();
             File.Delete("ass.o");
-            if(exitCode != 0 || !File.Exists("ass2.o"))
+            if (exitCode != 0 || !File.Exists("ass2.o"))
             {
-                if(File.Exists("ass2.o"))
+                if (File.Exists("ass2.o"))
                     File.Delete("ass2.o");
                 MessageBox.Show(output);
                 return;
@@ -402,23 +404,23 @@ namespace GeckoApp
             proc.StartInfo.CreateNoWindow = true;
             proc.StartInfo.RedirectStandardError = true;
             proc.Start();
-            output = String.Empty;
-            while(!proc.StandardError.EndOfStream)
+            output = string.Empty;
+            while (!proc.StandardError.EndOfStream)
                 output += proc.StandardError.ReadLine() + "\n";
             proc.WaitForExit();
 
             exitCode = proc.ExitCode;
             proc.Close();
             File.Delete("ass2.o");
-            if(exitCode != 0)
+            if (exitCode != 0)
             {
-                if(File.Exists("ass.bin"))
+                if (File.Exists("ass.bin"))
                     File.Delete("ass.bin");
                 MessageBox.Show(output);
                 return;
             }
 
-            UInt32 machineCode;
+            uint machineCode;
             FileStream sr = new FileStream("ass.bin", FileMode.Open);
             machineCode = GlobalFunctions.ReadStream(sr);
             sr.Close();
@@ -428,9 +430,10 @@ namespace GeckoApp
             {
                 gecko.poke(address, machineCode);
 
-                Thread.Sleep(100);
+                System.Threading.Thread.Sleep(100);
                 DissToBox(address);
-            } catch(ETCPGeckoException e)
+            }
+            catch (ETCPGeckoException e)
             {
                 exceptionHandling.HandleException(e);
             }

@@ -1,10 +1,10 @@
 ﻿using Ionic.Zip;
-using Ionic.Zlib;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Runtime.Serialization.Formatters.Binary;
 using System.Windows.Forms;
+
+using TCPTCPGecko;
 
 namespace GeckoApp
 {
@@ -40,7 +40,7 @@ namespace GeckoApp
     public class SearchComparisonInfo
     {
         public ComparisonType comparisonType;
-        public UInt32 value;
+        public uint value;
         public SearchType searchType;
 
         public SearchComparisonInfo()
@@ -50,7 +50,7 @@ namespace GeckoApp
             searchType = SearchType.Exact;
         }
 
-        public SearchComparisonInfo(ComparisonType ctype, UInt32 searchValue, SearchType stype)
+        public SearchComparisonInfo(ComparisonType ctype, uint searchValue, SearchType stype)
         {
             comparisonType = ctype;
             value = searchValue;
@@ -61,13 +61,12 @@ namespace GeckoApp
     [Serializable()]
     public class SearchResult
     {
-        public UInt32 address { get; private set; }
 
-        public UInt32 value { get; private set; }
+        public uint address { get; private set; }
+        public uint value { get; private set; }
+        public uint oldValue { get; private set; }
 
-        public UInt32 oldValue { get; private set; }
-
-        public SearchResult(UInt32 address, UInt32 value, UInt32 old)
+        public SearchResult(uint address, uint value, uint old)
         {
             this.address = address;
             this.value = value;
@@ -77,23 +76,22 @@ namespace GeckoApp
 
     public class DumpRange
     {
-        public UInt32 rangeLength;
-        public UInt32 streamOffset;
+        public uint rangeLength;
+        public uint streamOffset;
 
-        public UInt32 startAddress { get; set; }
-
-        public UInt32 endAddress { get; set; }
+        public uint startAddress { get; set; }
+        public uint endAddress { get; set; }
 
         public DumpRange()
         {
         }
 
-        public DumpRange(UInt32 startAddress)
+        public DumpRange(uint startAddress)
         {
             this.startAddress = startAddress;
         }
 
-        public DumpRange(UInt32 startAddress, UInt32 endAddress)
+        public DumpRange(uint startAddress, uint endAddress)
         {
             this.startAddress = startAddress;
             this.endAddress = endAddress;
@@ -102,17 +100,16 @@ namespace GeckoApp
 
     public struct StringResult
     {
-        public String SAddress;
-        public String SValue;
-        public String SOldValue;
+        public string SAddress;
+        public string SValue;
+        public string SOldValue;
     }
 
     public class MemSearch
     {
-        private const int pageSize = 256;
+        const int pageSize = 256;
 
-        private List<UInt32> resultAddressList;
-
+        private List<uint> resultAddressList;
         private SearchSize sSize;
         private int cPage;
         private int cPages;
@@ -120,16 +117,11 @@ namespace GeckoApp
         private bool InitialSearch;
 
         public SearchSize searchSize
-        {
-            get
-            {
-                return sSize;
-            }
-        }
+        { get { return sSize; } }
 
         private bool UnknownStart;
-        private UInt32 UnknownLAddress;
-        private UInt32 UnknownHAddress;
+        private uint UnknownLAddress;
+        private uint UnknownHAddress;
 
         private TCPGecko gecko;
         private DataGridView gView;
@@ -140,50 +132,29 @@ namespace GeckoApp
         public Dump oldDump;
         public Dump newDump;
         private Dump undoDump;
-        private List<UInt32> undoList;
+        private List<uint> undoList;
         private int dumpNum;
-
         public int DumpNum
         {
-            get
-            {
-                return dumpNum;
-            }
+            get { return dumpNum; }
         }
-
         private SearchHistoryManager searchHistory;
 
         private bool NewSearch = true;
 
         private ExceptionHandler exceptionHandling;
-
-        public String DisplayType { get; set; }
-
+        public string DisplayType { get; set; }
         public bool blockDump { get; private set; }
-
-        public UInt32 totalBlockSize { get; private set; }
-
-        public UInt32 blocksDumpedSize { get; private set; }
-
+        public uint totalBlockSize { get; private set; }
+        public uint blocksDumpedSize { get; private set; }
         public int blockID { get; private set; }
-
         public int blockCount { get; private set; }
+        public uint blockStart { get; private set; }
+        public uint blockEnd { get; private set; }
 
-        public UInt32 blockStart { get; private set; }
 
-        public UInt32 blockEnd { get; private set; }
-
-        public MemoryStream OrgStream { get; set; }
-
-        public MemoryStream CmpStream { get; set; }
-
-        public MemSearch(TCPGecko uGecko,
-                         DataGridView uGView,
-                         Button uPrvButton,
-                         Button uNxButton,
-                         Label UResLab,
-                         NumericUpDown UPageUpDown,
-                         ExceptionHandler UEHandler)
+        public MemSearch(TCPGecko uGecko, DataGridView uGView, Button uPrvButton, Button uNxButton,
+            Label UResLab, NumericUpDown UPageUpDown, ExceptionHandler UEHandler)
         {
             exceptionHandling = UEHandler;
 
@@ -207,9 +178,10 @@ namespace GeckoApp
             dumpNum = 0;
 
             searchHistory = new SearchHistoryManager();
+
         }
 
-        private void UpDownValueChanged(object sender, EventArgs e)
+        void UpDownValueChanged(object sender, EventArgs e)
         {
             cPage = Convert.ToInt32(pageUpDown.Value) - 1;
             PrintPageAlt();
@@ -217,45 +189,39 @@ namespace GeckoApp
 
         private void PrintPageAlt()
         {
-            if(cPage <= 0)
+            if (cPage <= 0)
             {
                 cPage = 0;
                 prvButton.Enabled = false;
-            } else
+            }
+            else
             {
                 prvButton.Enabled = true;
             }
 
-            if(cPage >= cPages - 1)
+            if (cPage >= cPages - 1)
             {
                 cPage = cPages - 1;
-                if(cPage < 0) cPage = 0;
+                if (cPage < 0) cPage = 0;
                 nxButton.Enabled = false;
-            } else
+            }
+            else
             {
                 nxButton.Enabled = (cPages > 1);
             }
 
-            resLab.Text = resultAddressList.Count.ToString() +
-                " results (" +
-                cPages.ToString() +
-                " pages)";
+            resLab.Text = resultAddressList.Count.ToString() + " results ("
+             + cPages.ToString() + " pages)";
 
             int i = 0;
-            String addr, value, oldv, diff;
+            string addr, value, oldv, diff;
 
             int strLength;
-            switch(sSize)
+            switch (sSize)
             {
-                case SearchSize.Bit8:
-                    strLength = 2;
-                    break;
-                case SearchSize.Bit16:
-                    strLength = 4;
-                    break;
-                default:
-                    strLength = 8;
-                    break;
+                case SearchSize.Bit8: strLength = 2; break;
+                case SearchSize.Bit16: strLength = 4; break;
+                default: strLength = 8; break;
             }
 
             int searchBytes = strLength / 2;
@@ -263,43 +229,46 @@ namespace GeckoApp
             int start = cPage * pageSize;
             int end = Math.Min(cPage * pageSize + pageSize, resultAddressList.Count);
             int count = end - start;
-            if(count < gView.Rows.Count)
+            if (count < gView.Rows.Count)
             {
                 gView.Rows.Clear();
             }
             int addCount = count - gView.Rows.Count;
-            if(addCount > 0)
+            if (addCount > 0)
             {
                 gView.Rows.Add(addCount);
             }
 
-            for(int j = start; j < end; j++)
+            for (int j = start; j < end; j++)
             {
                 SearchResult result;
-                if(oldDump == null)
+                if (oldDump == null)
                 {
                     result = new SearchResult(resultAddressList[j],
-                                              newDump.ReadAddress(resultAddressList[j], searchBytes),
-                                              0);
-                } else
+                        newDump.ReadAddress(resultAddressList[j], searchBytes),
+                        0);
+                }
+                else
                 {
                     result = new SearchResult(resultAddressList[j],
-                                              newDump.ReadAddress(resultAddressList[j], searchBytes),
-                                              oldDump.ReadAddress(resultAddressList[j], searchBytes));
+                        newDump.ReadAddress(resultAddressList[j], searchBytes),
+                        oldDump.ReadAddress(resultAddressList[j], searchBytes));
                 }
 
                 addr = fixString(Convert.ToString(result.address, 16).ToUpper(), 8);
-                if(DisplayType == "Hex")
+                if (DisplayType == "Hex")
                 {
                     value = fixString(Convert.ToString(result.value, 16).ToUpper(), strLength);
                     oldv = fixString(Convert.ToString(result.oldValue, 16).ToUpper(), strLength);
                     diff = fixString(Convert.ToString(result.value - result.oldValue, 16).ToUpper(), strLength);
-                } else if(DisplayType == "Dec")
+                }
+                else if (DisplayType == "Dec")
                 {
                     value = ((int)result.value).ToString();
                     oldv = ((int)result.oldValue).ToString();
                     diff = ((int)(result.value - result.oldValue)).ToString();
-                } else
+                }
+                else
                 {
                     float floatVal = GlobalFunctions.UIntToSingle(result.value);
                     float floatOldVal = GlobalFunctions.UIntToSingle(result.oldValue);
@@ -310,16 +279,18 @@ namespace GeckoApp
                 }
                 gView.Rows[i].Cells[0].Value = addr;
 
-                if(InitialSearch)
+                if (InitialSearch)
                 {
                     gView.Rows[i].Cells[1].Value = string.Empty;
                     gView.Rows[i].Cells[3].Value = string.Empty;
-                } else if(resultAddressList[i] < oldDump.StartAddress ||
-                    resultAddressList[i] > oldDump.EndAddress - searchBytes)
+
+                }
+                else if (resultAddressList[i] < oldDump.StartAddress || resultAddressList[i] > oldDump.EndAddress - searchBytes)
                 {
                     gView.Rows[i].Cells[1].Value = "N/A";
                     gView.Rows[i].Cells[3].Value = "N/A";
-                } else
+                }
+                else
                 {
                     gView.Rows[i].Cells[1].Value = oldv;
                     gView.Rows[i].Cells[3].Value = diff;
@@ -339,78 +310,66 @@ namespace GeckoApp
             pageUpDown.Value = Convert.ToDecimal(cPage);
         }
 
-        private String fixString(String input, int length)
+        private string fixString(string input, int length)
         {
-            String parse = input;
-            if(parse.Length > length)
+            string parse = input;
+            if (parse.Length > length)
                 parse =
                     parse.Substring(parse.Length - length, length);
 
-            while(parse.Length < length)
+            while (parse.Length < length)
                 parse = "0" + parse;
 
             return parse;
         }
 
-        public UInt32 GetAddress(int index)
+        public uint GetAddress(int index)
         {
             return resultAddressList[cPage * pageSize + index];
         }
 
         public StringResult GetResult(int index)
         {
-            UInt32 resultAddress = GetAddress(index);
+            uint resultAddress = GetAddress(index);
 
             int strLength;
-            switch(sSize)
+            switch (sSize)
             {
-                case (SearchSize.Bit8):
-                    strLength = 2;
-                    break;
-                case (SearchSize.Bit16):
-                    strLength = 4;
-                    break;
-                default:
-                    strLength = 8;
-                    break;
+                case (SearchSize.Bit8): strLength = 2; break;
+                case (SearchSize.Bit16): strLength = 4; break;
+                default: strLength = 8; break;
             }
             StringResult result;
             result.SAddress = fixString(Convert.ToString(resultAddress, 16).ToUpper(), 8);
             result.SValue = fixString(Convert.ToString(newDump.ReadAddress32(resultAddress), 16).ToUpper(), strLength);
-            if(oldDump != null)
+            if (oldDump != null)
             {
-                result.SOldValue = fixString(Convert.ToString(oldDump.ReadAddress32(resultAddress), 16).ToUpper(),
-                                             strLength);
-            } else
+                result.SOldValue = fixString(Convert.ToString(oldDump.ReadAddress32(resultAddress), 16).ToUpper(), strLength);
+            }
+            else
             {
                 result.SOldValue = string.Empty;
             }
             return result;
         }
 
-        public UInt32 GetNewValueFromAddress(UInt32 resultAddress)
+        public uint GetNewValueFromAddress(uint resultAddress)
         {
             return newDump.ReadAddress(resultAddress, 4);
         }
 
-        public static UInt32 ReadStream(Stream input, int blength)
+        public static uint ReadStream(Stream input, int blength)
         {
-            Byte[] buffer = new Byte[blength];
-            UInt32 result;
+            byte[] buffer = new byte[blength];
+            uint result;
 
             input.Read(buffer, 0, blength);
 
-            switch(blength)
+            switch (blength)
             {
-                case 1:
-                    result = (UInt32)buffer[0];
-                    break;
-                case 2:
-                    result = (UInt32)ByteSwap.Swap(BitConverter.ToUInt16(buffer, 0));
-                    break;
-                default:
-                    result = ByteSwap.Swap(BitConverter.ToUInt32(buffer, 0));
-                    break;
+                case 1: result = (uint)buffer[0]; break;
+                case 2: result = (uint)ByteSwap.Swap(BitConverter.ToUInt16(buffer, 0)); break;
+                default: result = ByteSwap.Swap(BitConverter.ToUInt32(buffer, 0)); break;
             }
 
             return result;
@@ -422,14 +381,14 @@ namespace GeckoApp
 
             totalBlockSize = 0;
             blocksDumpedSize = 0;
-            for(int i = 0; i < dumpranges.Count; i++)
+            for (int i = 0; i < dumpranges.Count; i++)
                 totalBlockSize += dumpranges[i].rangeLength;
 
             blockCount = dumpranges.Count;
 
             gecko.CancelDump = false;
 
-            for(int i = 0; i < dumpranges.Count && !gecko.CancelDump; i++)
+            for (int i = 0; i < dumpranges.Count && !gecko.CancelDump; i++)
             {
                 blockID = i + 1;
                 blockStart = dumpranges[i].startAddress;
@@ -437,24 +396,27 @@ namespace GeckoApp
 
                 SafeDump(dumpranges[i].startAddress, dumpranges[i].endAddress, blockDump);
 
+
+
                 blocksDumpedSize += dumpranges[i].rangeLength;
             }
 
             this.blockDump = false;
         }
 
-        private List<DumpRange> FindDumpRanges(UInt32 startAddress, Byte valueLength, int lowIndex, int highIndex)
+        private List<DumpRange> FindDumpRanges(uint startAddress, byte valueLength, int lowIndex, int highIndex)
         {
-            const UInt32 blockSize = 0x3E000;
+            const uint blockSize = 0x3E000;
 
             List<DumpRange> dumpranges = new List<DumpRange>();
 
-            UInt32 lastAddress;
+            uint lastAddress;
 
-            if(resultAddressList.Count > 0)
+            if (resultAddressList.Count > 0)
             {
                 lastAddress = resultAddressList[lowIndex];
-            } else
+            }
+            else
             {
                 lastAddress = startAddress;
             }
@@ -462,9 +424,9 @@ namespace GeckoApp
             DumpRange addRange = new DumpRange(lastAddress);
             addRange.streamOffset = lastAddress - startAddress;
 
-            for(int i = lowIndex + 1; i <= highIndex; i++)
+            for (int i = lowIndex + 1; i <= highIndex; i++)
             {
-                if(resultAddressList[i] >= lastAddress + blockSize)
+                if (resultAddressList[i] >= lastAddress + blockSize)
                 {
                     addRange.endAddress = lastAddress + valueLength;
                     addRange.rangeLength =
@@ -483,275 +445,210 @@ namespace GeckoApp
             return dumpranges;
         }
 
-        private bool Compare(UInt32 given,
-                             UInt32 loExpected,
-                             UInt32 hiExpected,
-                             bool useHigh,
-                             ComparisonType cType,
-                             UInt32 diffBy,
-                             bool floatCompare)
+        private bool Compare(uint given, uint loExpected, uint hiExpected, bool useHigh,
+            ComparisonType cType, uint diffBy, bool floatCompare)
         {
-            if(floatCompare)
+            if (floatCompare)
             {
-                Single givenSingle = GlobalFunctions.UIntToSingle(given),
+                float givenSingle = GlobalFunctions.UIntToSingle(given),
                     loExpectedSingle = GlobalFunctions.UIntToSingle(loExpected),
                     diffBySingle = GlobalFunctions.UIntToSingle(diffBy);
-                if(Single.IsNaN(givenSingle) || Single.IsNaN(loExpectedSingle) || Single.IsNaN(diffBySingle))
+                if (float.IsNaN(givenSingle) || float.IsNaN(loExpectedSingle) || float.IsNaN(diffBySingle))
                 {
                     return false;
                 }
 
-                switch(cType)
+                switch (cType)
                 {
-                    case ComparisonType.Equal:
-                        return (givenSingle == loExpectedSingle);
-                    case ComparisonType.NotEqual:
-                        return (givenSingle != loExpectedSingle);
-                    case ComparisonType.Greater:
-                        return (givenSingle > loExpectedSingle);
-                    case ComparisonType.GreaterEqual:
-                        return (givenSingle >= loExpectedSingle);
-                    case ComparisonType.Lower:
-                        return (givenSingle < loExpectedSingle);
-                    case ComparisonType.LowerEqual:
-                        return (givenSingle <= loExpectedSingle);
-                    case ComparisonType.DifferentBy:
-                        return (loExpectedSingle - diffBySingle == givenSingle ||
-                            loExpectedSingle + diffBySingle == givenSingle);
-                    case ComparisonType.DifferentByLess:
-                        return (loExpectedSingle - diffBySingle < givenSingle &&
-                            givenSingle < loExpectedSingle + diffBySingle);
-                    case ComparisonType.DifferentByMore:
-                        return (givenSingle < loExpectedSingle - diffBySingle ||
-                            givenSingle > loExpectedSingle + diffBySingle);
-                    default:
-                        return (givenSingle == loExpectedSingle);
+                    case ComparisonType.Equal: return (givenSingle == loExpectedSingle);
+                    case ComparisonType.NotEqual: return (givenSingle != loExpectedSingle);
+                    case ComparisonType.Greater: return (givenSingle > loExpectedSingle);
+                    case ComparisonType.GreaterEqual: return (givenSingle >= loExpectedSingle);
+                    case ComparisonType.Lower: return (givenSingle < loExpectedSingle);
+                    case ComparisonType.LowerEqual: return (givenSingle <= loExpectedSingle);
+                    case ComparisonType.DifferentBy: return (loExpectedSingle - diffBySingle == givenSingle || loExpectedSingle + diffBySingle == givenSingle);
+                    case ComparisonType.DifferentByLess: return (loExpectedSingle - diffBySingle < givenSingle && givenSingle < loExpectedSingle + diffBySingle);
+                    case ComparisonType.DifferentByMore: return (givenSingle < loExpectedSingle - diffBySingle || givenSingle > loExpectedSingle + diffBySingle);
+                    default: return (givenSingle == loExpectedSingle);
                 }
-            } else if(useHigh)
+            }
+            else if (useHigh)
             {
-                switch(cType)
+                switch (cType)
                 {
-                    case ComparisonType.Equal:
-                        return (given >= loExpected && given <= hiExpected);
-                    case ComparisonType.NotEqual:
-                        return (given < loExpected || given > hiExpected);
-                    case ComparisonType.Greater:
-                        return (given > hiExpected);
-                    case ComparisonType.GreaterEqual:
-                        return (given >= hiExpected);
-                    case ComparisonType.Lower:
-                        return (given < loExpected);
-                    case ComparisonType.LowerEqual:
-                        return (given <= loExpected);
-                    default:
-                        return (given >= loExpected && given <= hiExpected);
+                    case ComparisonType.Equal: return (given >= loExpected && given <= hiExpected);
+                    case ComparisonType.NotEqual: return (given < loExpected || given > hiExpected);
+                    case ComparisonType.Greater: return (given > hiExpected);
+                    case ComparisonType.GreaterEqual: return (given >= hiExpected);
+                    case ComparisonType.Lower: return (given < loExpected);
+                    case ComparisonType.LowerEqual: return (given <= loExpected);
+                    default: return (given >= loExpected && given <= hiExpected);
                 }
-            } else
+            }
+            else
             {
-                switch(cType)
+                switch (cType)
                 {
-                    case ComparisonType.Equal:
-                        return (given == loExpected);
-                    case ComparisonType.NotEqual:
-                        return (given != loExpected);
-                    case ComparisonType.Greater:
-                        return (given > loExpected);
-                    case ComparisonType.GreaterEqual:
-                        return (given >= loExpected);
-                    case ComparisonType.Lower:
-                        return (given < loExpected);
-                    case ComparisonType.LowerEqual:
-                        return (given <= loExpected);
-                    case ComparisonType.DifferentBy:
-                        return (loExpected - diffBy == given || loExpected + diffBy == given);
-                    case ComparisonType.DifferentByLess:
-                        return (loExpected - diffBy < given && given < loExpected + diffBy);
-                    case ComparisonType.DifferentByMore:
-                        return (given < loExpected - diffBy || given > loExpected + diffBy);
-                    default:
-                        return (given == loExpected);
+                    case ComparisonType.Equal: return (given == loExpected);
+                    case ComparisonType.NotEqual: return (given != loExpected);
+                    case ComparisonType.Greater: return (given > loExpected);
+                    case ComparisonType.GreaterEqual: return (given >= loExpected);
+                    case ComparisonType.Lower: return (given < loExpected);
+                    case ComparisonType.LowerEqual: return (given <= loExpected);
+                    case ComparisonType.DifferentBy: return (loExpected - diffBy == given || loExpected + diffBy == given);
+                    case ComparisonType.DifferentByLess: return (loExpected - diffBy < given && given < loExpected + diffBy);
+                    case ComparisonType.DifferentByMore: return (given < loExpected - diffBy || given > loExpected + diffBy);
+                    default: return (given == loExpected);
                 }
             }
         }
 
-        private bool CompareRefactored(UInt32 newDumpVal,
-                                       UInt32 oldDumpVal,
-                                       UInt32 UndoDumpVal,
-                                       List<SearchComparisonInfo> comparisons,
-                                       bool floatCompare)
+        private bool CompareRefactored(uint newDumpVal, uint oldDumpVal, uint UndoDumpVal, List<SearchComparisonInfo> comparisons, bool floatCompare)
         {
             bool success = true;
             int others = 0;
             int GT = 0;
             int LT = 0;
             bool reverseGTLT = false;
-            UInt32 GTValue = 0, LTValue = 0;
-            foreach(SearchComparisonInfo comp in comparisons)
+            uint GTValue = 0, LTValue = 0;
+            foreach (SearchComparisonInfo comp in comparisons)
             {
-                UInt32 LHS = newDumpVal;
-                UInt32 RHS = comp.value;
+                uint LHS = newDumpVal;
+                uint RHS = comp.value;
 
                 SearchType sType = comp.searchType;
 
-                if(sType == SearchType.Unknown)
+                if (sType == SearchType.Unknown)
                 {
                     RHS = oldDumpVal;
-                } else if(sType == SearchType.Old)
+                }
+                else if (sType == SearchType.Old)
                 {
                     RHS = UndoDumpVal;
-                } else if(sType == SearchType.Diff)
+                }
+                else if (sType == SearchType.Diff)
                 {
                     LHS = newDumpVal - oldDumpVal;
                 }
 
                 success = CompareRefactored(LHS, RHS, comp.comparisonType, comp.value, floatCompare);
 
-                if(comp.comparisonType == ComparisonType.Equal)
+                if (comp.comparisonType == ComparisonType.Equal)
                 {
-                    if(success) return true;
-                } else if(comp.comparisonType == ComparisonType.GreaterEqual ||
-                    comp.comparisonType == ComparisonType.Greater)
+                    if (success) return true;
+                }
+                else if (comp.comparisonType == ComparisonType.GreaterEqual || comp.comparisonType == ComparisonType.Greater)
                 {
                     GTValue = comp.value;
 
-                    if(success) GT = 1;
+                    if (success) GT = 1;
                     else GT = -1;
 
-                    if(LT != 0 && GTValue > LTValue)
+                    if (LT != 0 && GTValue > LTValue)
                     {
                         reverseGTLT = true;
                     }
-                } else if(comp.comparisonType == ComparisonType.Lower ||
-                    comp.comparisonType == ComparisonType.LowerEqual)
+                }
+                else if (comp.comparisonType == ComparisonType.Lower || comp.comparisonType == ComparisonType.LowerEqual)
                 {
                     LTValue = comp.value;
 
-                    if(success) LT = 1;
+                    if (success) LT = 1;
                     else LT = -1;
 
-                    if(GT != 0 && GTValue > LTValue)
+                    if (GT != 0 && GTValue > LTValue)
                     {
                         reverseGTLT = true;
                     }
-                } else
+                }
+                else
                 {
-                    if(others != -1 && success) others = 1;
+                    if (others != -1 && success) others = 1;
                     else others = -1;
                 }
             }
 
-            if(others < 0) return false;
+            if (others < 0) return false;
 
-            if(LT > 0 || GT > 0)
+            if (LT > 0 || GT > 0)
             {
-                if(reverseGTLT)
+                if (reverseGTLT)
                 {
                     return true;
-                } else
+                }
+                else
                 {
                     return LT > -1 && GT > -1;
                 }
             }
 
-            if(LT < 0 || GT < 0) return false;
+            if (LT < 0 || GT < 0) return false;
 
             return (others > 0);
         }
 
-        private bool CompareRefactored(UInt32 given,
-                                       UInt32 loExpected,
-                                       ComparisonType cType,
-                                       UInt32 diffBy,
-                                       bool floatCompare)
+        private bool CompareRefactored(uint given, uint loExpected, ComparisonType cType, uint diffBy, bool floatCompare)
         {
-            if(floatCompare)
+            if (floatCompare)
             {
-                Single givenSingle = GlobalFunctions.UIntToSingle(given),
+                float givenSingle = GlobalFunctions.UIntToSingle(given),
                     loExpectedSingle = GlobalFunctions.UIntToSingle(loExpected),
                     diffBySingle = GlobalFunctions.UIntToSingle(diffBy);
-                if(Single.IsNaN(givenSingle) || Single.IsNaN(loExpectedSingle) || Single.IsNaN(diffBySingle))
+                if (float.IsNaN(givenSingle) || float.IsNaN(loExpectedSingle) || float.IsNaN(diffBySingle))
                 {
                     return false;
                 }
 
-                switch(cType)
+                switch (cType)
                 {
-                    case ComparisonType.Equal:
-                        return (givenSingle == loExpectedSingle);
-                    case ComparisonType.NotEqual:
-                        return (givenSingle != loExpectedSingle);
-                    case ComparisonType.Greater:
-                        return (givenSingle > loExpectedSingle);
-                    case ComparisonType.GreaterEqual:
-                        return (givenSingle >= loExpectedSingle);
-                    case ComparisonType.Lower:
-                        return (givenSingle < loExpectedSingle);
-                    case ComparisonType.LowerEqual:
-                        return (givenSingle <= loExpectedSingle);
-                    case ComparisonType.DifferentBy:
-                        return (loExpectedSingle - diffBySingle == givenSingle ||
-                            loExpectedSingle + diffBySingle == givenSingle);
-                    case ComparisonType.DifferentByLess:
-                        return (loExpectedSingle - diffBySingle < givenSingle &&
-                            givenSingle < loExpectedSingle + diffBySingle);
-                    case ComparisonType.DifferentByMore:
-                        return (givenSingle < loExpectedSingle - diffBySingle ||
-                            givenSingle > loExpectedSingle + diffBySingle);
-                    default:
-                        return (givenSingle == loExpectedSingle);
+                    case ComparisonType.Equal: return (givenSingle == loExpectedSingle);
+                    case ComparisonType.NotEqual: return (givenSingle != loExpectedSingle);
+                    case ComparisonType.Greater: return (givenSingle > loExpectedSingle);
+                    case ComparisonType.GreaterEqual: return (givenSingle >= loExpectedSingle);
+                    case ComparisonType.Lower: return (givenSingle < loExpectedSingle);
+                    case ComparisonType.LowerEqual: return (givenSingle <= loExpectedSingle);
+                    case ComparisonType.DifferentBy: return (loExpectedSingle - diffBySingle == givenSingle || loExpectedSingle + diffBySingle == givenSingle);
+                    case ComparisonType.DifferentByLess: return (loExpectedSingle - diffBySingle < givenSingle && givenSingle < loExpectedSingle + diffBySingle);
+                    case ComparisonType.DifferentByMore: return (givenSingle < loExpectedSingle - diffBySingle || givenSingle > loExpectedSingle + diffBySingle);
+                    default: return (givenSingle == loExpectedSingle);
                 }
-            } else
+            }
+            else
             {
-                switch(cType)
+                switch (cType)
                 {
-                    case ComparisonType.Equal:
-                        return (given == loExpected);
-                    case ComparisonType.NotEqual:
-                        return (given != loExpected);
-                    case ComparisonType.Greater:
-                        return (given > loExpected);
-                    case ComparisonType.GreaterEqual:
-                        return (given >= loExpected);
-                    case ComparisonType.Lower:
-                        return (given < loExpected);
-                    case ComparisonType.LowerEqual:
-                        return (given <= loExpected);
-                    case ComparisonType.DifferentBy:
-                        return (loExpected - diffBy == given || loExpected + diffBy == given);
-                    case ComparisonType.DifferentByLess:
-                        return (loExpected - diffBy < given && given < loExpected + diffBy);
-                    case ComparisonType.DifferentByMore:
-                        return (given < loExpected - diffBy || given > loExpected + diffBy);
-                    default:
-                        return (given == loExpected);
+                    case ComparisonType.Equal: return (given == loExpected);
+                    case ComparisonType.NotEqual: return (given != loExpected);
+                    case ComparisonType.Greater: return (given > loExpected);
+                    case ComparisonType.GreaterEqual: return (given >= loExpected);
+                    case ComparisonType.Lower: return (given < loExpected);
+                    case ComparisonType.LowerEqual: return (given <= loExpected);
+                    case ComparisonType.DifferentBy: return (loExpected - diffBy == given || loExpected + diffBy == given);
+                    case ComparisonType.DifferentByLess: return (loExpected - diffBy < given && given < loExpected + diffBy);
+                    case ComparisonType.DifferentByMore: return (given < loExpected - diffBy || given > loExpected + diffBy);
+                    default: return (given == loExpected);
                 }
             }
         }
 
-        private void FindPairs(UInt32 sAddress,
-                               UInt32 eAddress,
-                               Byte valSize,
-                               out UInt32 firstAddress,
-                               out UInt32 lastAddress,
-                               out int firstAddressIndex,
-                               out int lastAddressIndex)
+        private void FindPairs(uint sAddress, uint eAddress, byte valSize, out uint firstAddress, out uint lastAddress, out int firstAddressIndex, out int lastAddressIndex)
         {
             firstAddress = sAddress;
             lastAddress = eAddress;
             firstAddressIndex = 0;
             lastAddressIndex = resultAddressList.Count - 1;
-            for(int i = 0; i < resultAddressList.Count; i++)
+            for (int i = 0; i < resultAddressList.Count; i++)
             {
-                if(sAddress <= resultAddressList[i])
+                if (sAddress <= resultAddressList[i])
                 {
                     firstAddress = resultAddressList[i];
                     firstAddressIndex = i;
                     break;
                 }
             }
-            for(int i = resultAddressList.Count - 1; i >= 0; i--)
+            for (int i = resultAddressList.Count - 1; i >= 0; i--)
             {
-                if(eAddress >= resultAddressList[i] + valSize)
+                if (eAddress >= resultAddressList[i] + valSize)
                 {
                     lastAddress = resultAddressList[i] + valSize;
                     lastAddressIndex = i;
@@ -770,15 +667,15 @@ namespace GeckoApp
             resultAddressList.Clear();
             undoList.Clear();
             gView.Rows.Clear();
-            if(newDump != null)
+            if (newDump != null)
             {
                 newDump = null;
             }
-            if(oldDump != null)
+            if (oldDump != null)
             {
                 oldDump = null;
             }
-            if(undoDump != null)
+            if (undoDump != null)
             {
                 undoDump = null;
             }
@@ -786,32 +683,20 @@ namespace GeckoApp
             dumpNum = 0;
         }
 
-        public bool Search(UInt32 sAddress,
-                           UInt32 eAddress,
-                           UInt32 lValue,
-                           UInt32 hValue,
-                           bool useHValue,
-                           SearchType sType,
-                           SearchSize sSize,
-                           ComparisonType cType,
-                           UInt32 differentBy)
+        public bool Search(uint sAddress, uint eAddress, uint lValue, uint hValue,
+            bool useHValue, SearchType sType, SearchSize sSize, ComparisonType cType,
+            uint differentBy)
         {
             blockDump = false;
 
             resLab.Text = "Searching";
-            Byte bufferlength = 0;
+            byte bufferlength = 0;
 
-            switch(sSize)
+            switch (sSize)
             {
-                case (SearchSize.Bit8):
-                    bufferlength = 1;
-                    break;
-                case (SearchSize.Bit16):
-                    bufferlength = 2;
-                    break;
-                default:
-                    bufferlength = 4;
-                    break;
+                case (SearchSize.Bit8): bufferlength = 1; break;
+                case (SearchSize.Bit16): bufferlength = 2; break;
+                default: bufferlength = 4; break;
             }
 
             bool floatCompare = sSize == SearchSize.Single;
@@ -819,12 +704,12 @@ namespace GeckoApp
             int oldSortedColumn = 0;
             SortOrder oldSortOrder = SortOrder.Ascending;
             SearchResultComparer comparer = new SearchResultComparer();
-            if(gView.SortedColumn != null)
+            if (gView.SortedColumn != null)
             {
                 oldSortedColumn = gView.SortedColumn.Index;
                 oldSortOrder = gView.SortOrder;
             }
-            if(oldSortedColumn != 0 || oldSortOrder != SortOrder.Ascending)
+            if (oldSortedColumn != 0 || oldSortOrder != SortOrder.Ascending)
             {
                 comparer.sortedColumn = 0;
                 comparer.descending = false;
@@ -836,60 +721,63 @@ namespace GeckoApp
             bool doBlockSearch = false;
             bool doCompare = false;
 
-            Dump searchDump = 0;
-            UInt32 dumpStart, dumpEnd, dumpOffset;
+            Dump searchDump;
+            uint dumpStart, dumpEnd, dumpOffset;
 
             dumpStart = sAddress;
             dumpEnd = eAddress;
             dumpOffset = 0;
 
-            if(NewSearch || (UnknownStart && sType == SearchType.Exact))
+            if (NewSearch || (UnknownStart && sType == SearchType.Exact))
             {
                 InitialSearch = true;
                 dumpNum = 0;
 
-                if(newDump != null)
+                if (newDump != null)
                 {
                     newDump = null;
                 }
                 resultAddressList.Clear();
-                if(oldDump != null)
+                if (oldDump != null)
                 {
                     oldDump = null;
                 }
 
-                if(sType == SearchType.Exact)
+                if (sType == SearchType.Exact)
                 {
                     doCompare = true;
-                } else
+                }
+                else
                 {
                     UnknownLAddress = sAddress;
                     UnknownHAddress = eAddress;
                     UnknownStart = true;
                     NewSearch = false;
                 }
-            } else
+            }
+            else
             {
                 InitialSearch = false;
                 doCompare = true;
-                if(UnknownStart)
+                if (UnknownStart)
                 {
                     dumpStart = Math.Max(UnknownLAddress, sAddress);
                     dumpEnd = Math.Min(UnknownHAddress, eAddress);
                     dumpOffset = dumpStart - UnknownLAddress;
-                } else
+                }
+                else
                 {
                     doBlockSearch = true;
                 }
             }
 
-            if(undoDump != null)
+            if (undoDump != null)
             {
             }
             undoDump = oldDump;
             oldDump = newDump;
 
-            if(undoList != resultAddressList)
+            if (undoList != resultAddressList)
             {
                 undoList.Clear();
             }
@@ -897,79 +785,75 @@ namespace GeckoApp
 
             try
             {
-                if(doBlockSearch)
+                if (doBlockSearch)
                 {
-                    UInt32 startAddress, endAddress;
+                    uint startAddress, endAddress;
                     int startAddressIndex, endAddressIndex;
-                    FindPairs(sAddress,
-                              eAddress,
-                              bufferlength,
-                              out startAddress,
-                              out endAddress,
-                              out startAddressIndex,
-                              out endAddressIndex);
-                    List<DumpRange> dumpRanges = FindDumpRanges(startAddress,
-                                                                bufferlength,
-                                                                startAddressIndex,
-                                                                endAddressIndex);
+                    FindPairs(sAddress, eAddress, bufferlength, out startAddress, out endAddress, out startAddressIndex, out endAddressIndex);
+                    List<DumpRange> dumpRanges = FindDumpRanges(startAddress, bufferlength, startAddressIndex, endAddressIndex);
                     newDump = new Dump(startAddress, endAddress, dumpNum);
                     PerformBlockSearch(newDump, dumpRanges);
-                } else
+                }
+                else
                 {
                     newDump = new Dump(dumpStart, dumpEnd, dumpNum);
                     gecko.Dump(newDump);
                 }
-            } catch(ETCPGeckoException e)
+            }
+            catch (ETCPGeckoException e)
             {
                 exceptionHandling.HandleException(e);
             }
 
-            if(doCompare)
+            if (doCompare)
             {
-                if(sType != SearchType.Exact && sType != SearchType.Diff)
+                if (sType != SearchType.Exact && sType != SearchType.Diff)
                 {
                     hValue = 0;
                     useHValue = false;
                 }
 
-                UInt32 val, cmpVal;
+                uint val, cmpVal;
                 cmpVal = lValue;
 
-                if(resultAddressList.Count > 0)
+                if (resultAddressList.Count > 0)
                 {
-                    List<UInt32> tempAddressList = new List<uint>();
-                    foreach(UInt32 compareAddress in resultAddressList)
+                    List<uint> tempAddressList = new List<uint>();
+                    foreach (uint compareAddress in resultAddressList)
                     {
                         val = newDump.ReadAddress(compareAddress, bufferlength);
-                        if(sType == SearchType.Unknown)
+                        if (sType == SearchType.Unknown)
                         {
                             cmpVal = oldDump.ReadAddress(compareAddress, bufferlength);
-                        } else if(sType == SearchType.Old)
+                        }
+                        else if (sType == SearchType.Old)
                         {
                             cmpVal = undoDump.ReadAddress(compareAddress, bufferlength);
-                        } else if(sType == SearchType.Diff)
+                        }
+                        else if (sType == SearchType.Diff)
                         {
                             val = val - oldDump.ReadAddress(compareAddress, bufferlength);
                         }
 
-                        if(Compare(val, cmpVal, hValue, useHValue, cType, differentBy, floatCompare))
+                        if (Compare(val, cmpVal, hValue, useHValue, cType, differentBy, floatCompare))
                         {
                             tempAddressList.Add(compareAddress);
                         }
                     }
 
                     resultAddressList = tempAddressList;
-                } else
+                }
+                else
                 {
-                    for(UInt32 i = newDump.StartAddress; i < newDump.EndAddress; i += bufferlength)
+                    for (uint i = newDump.StartAddress; i < newDump.EndAddress; i += bufferlength)
                     {
                         val = newDump.ReadAddress(i, bufferlength);
-                        if(sType != SearchType.Exact)
+                        if (sType != SearchType.Exact)
                         {
                             cmpVal = oldDump.ReadAddress(i, bufferlength);
                         }
 
-                        if(Compare(val, cmpVal, hValue, useHValue, cType, differentBy, floatCompare))
+                        if (Compare(val, cmpVal, hValue, useHValue, cType, differentBy, floatCompare))
                         {
                             resultAddressList.Add(i);
                         }
@@ -977,14 +861,16 @@ namespace GeckoApp
                 }
             }
 
-            if(UnknownStart && !InitialSearch)
+
+            if (UnknownStart && !InitialSearch)
             {
                 UnknownStart = false;
             }
 
             dumpNum++;
 
-            if(resultAddressList.Count == 0 && !UnknownStart)
+
+            if (resultAddressList.Count == 0 && !UnknownStart)
             {
                 NewSearch = true;
                 nxButton.Enabled = false;
@@ -1001,27 +887,18 @@ namespace GeckoApp
             return true;
         }
 
-        public bool SearchRefactored(UInt32 sAddress,
-                                     UInt32 eAddress,
-                                     List<SearchComparisonInfo> comparisons,
-                                     SearchSize searchSize)
+        public bool SearchRefactored(uint sAddress, uint eAddress, List<SearchComparisonInfo> comparisons, SearchSize searchSize)
         {
             blockDump = false;
 
             resLab.Text = "Searching";
-            Byte bufferlength = 0;
+            byte bufferlength = 0;
 
-            switch(searchSize)
+            switch (searchSize)
             {
-                case (SearchSize.Bit8):
-                    bufferlength = 1;
-                    break;
-                case (SearchSize.Bit16):
-                    bufferlength = 2;
-                    break;
-                default:
-                    bufferlength = 4;
-                    break;
+                case (SearchSize.Bit8): bufferlength = 1; break;
+                case (SearchSize.Bit16): bufferlength = 2; break;
+                default: bufferlength = 4; break;
             }
 
             this.sSize = searchSize;
@@ -1031,12 +908,12 @@ namespace GeckoApp
             int oldSortedColumn = 0;
             SortOrder oldSortOrder = SortOrder.Ascending;
             SearchResultComparer comparer = new SearchResultComparer();
-            if(gView.SortedColumn != null)
+            if (gView.SortedColumn != null)
             {
                 oldSortedColumn = gView.SortedColumn.Index;
                 oldSortOrder = gView.SortOrder;
             }
-            if(oldSortedColumn != 0 || oldSortOrder != SortOrder.Ascending)
+            if (oldSortedColumn != 0 || oldSortOrder != SortOrder.Ascending)
             {
                 comparer.sortedColumn = 0;
                 comparer.descending = false;
@@ -1048,48 +925,51 @@ namespace GeckoApp
             bool doBlockSearch = false;
             bool doCompare = false;
 
-            Dump searchDump = 0;
-            UInt32 dumpStart, dumpEnd, dumpOffset;
+            Dump searchDump;
+            uint dumpStart, dumpEnd, dumpOffset;
 
             dumpStart = sAddress;
             dumpEnd = eAddress;
             dumpOffset = 0;
 
-            if(NewSearch || (UnknownStart && sType == SearchType.Exact))
+            if (NewSearch || (UnknownStart && sType == SearchType.Exact))
             {
                 InitialSearch = true;
                 dumpNum = 0;
 
-                if(newDump != null)
+                if (newDump != null)
                 {
                     newDump = null;
                 }
                 resultAddressList.Clear();
-                if(oldDump != null)
+                if (oldDump != null)
                 {
                     oldDump = null;
                 }
 
-                if(sType == SearchType.Exact)
+                if (sType == SearchType.Exact)
                 {
                     doCompare = true;
-                } else
+                }
+                else
                 {
                     UnknownLAddress = sAddress;
                     UnknownHAddress = eAddress;
                     UnknownStart = true;
                     NewSearch = false;
                 }
-            } else
+            }
+            else
             {
                 InitialSearch = false;
                 doCompare = true;
-                if(UnknownStart)
+                if (UnknownStart)
                 {
                     dumpStart = Math.Max(UnknownLAddress, sAddress);
                     dumpEnd = Math.Min(UnknownHAddress, eAddress);
                     dumpOffset = dumpStart - UnknownLAddress;
-                } else
+                }
+                else
                 {
                     doBlockSearch = true;
                 }
@@ -1099,70 +979,64 @@ namespace GeckoApp
             oldDump = newDump;
             undoList = resultAddressList;
 
-            if(doBlockSearch)
+            if (doBlockSearch)
             {
-                UInt32 startAddress, endAddress;
+                uint startAddress, endAddress;
                 int startAddressIndex, endAddressIndex;
-                FindPairs(dumpStart,
-                          dumpEnd,
-                          bufferlength,
-                          out startAddress,
-                          out endAddress,
-                          out startAddressIndex,
-                          out endAddressIndex);
-                List<DumpRange> dumpRanges = FindDumpRanges(startAddress,
-                                                            bufferlength,
-                                                            startAddressIndex,
-                                                            endAddressIndex);
+                FindPairs(dumpStart, dumpEnd, bufferlength, out startAddress, out endAddress, out startAddressIndex, out endAddressIndex);
+                List<DumpRange> dumpRanges = FindDumpRanges(startAddress, bufferlength, startAddressIndex, endAddressIndex);
                 newDump = new Dump(startAddress, endAddress, dumpNum);
                 PerformBlockSearch(newDump, dumpRanges);
-            } else
+            }
+            else
             {
                 newDump = new Dump(dumpStart, dumpEnd, dumpNum);
                 SafeDump(dumpStart, dumpEnd, newDump);
             }
 
-            if(doCompare)
+            if (doCompare)
             {
-                UInt32 cmpVal;
+                uint val, cmpVal;
                 cmpVal = comparisons[0].value;
 
-                if(resultAddressList.Count > 0)
+                if (resultAddressList.Count > 0)
                 {
-                    List<UInt32> tempAddressList = new List<uint>();
-                    foreach(UInt32 compareAddress in resultAddressList)
+                    List<uint> tempAddressList = new List<uint>();
+                    foreach (uint compareAddress in resultAddressList)
                     {
-                        UInt32 newDumpVal = newDump.ReadAddress(compareAddress, bufferlength);
-                        UInt32 oldDumpVal = oldDump.ReadAddress(compareAddress, bufferlength);
-                        UInt32 UndoDumpVal;
-                        if(undoDump != null)
+                        uint newDumpVal = newDump.ReadAddress(compareAddress, bufferlength);
+                        uint oldDumpVal = oldDump.ReadAddress(compareAddress, bufferlength);
+                        uint UndoDumpVal;
+                        if (undoDump != null)
                         {
                             UndoDumpVal = undoDump.ReadAddress(compareAddress, bufferlength);
-                        } else
+                        }
+                        else
                         {
                             UndoDumpVal = oldDumpVal;
                         }
-                        if(CompareRefactored(newDumpVal, oldDumpVal, UndoDumpVal, comparisons, floatCompare))
+                        if (CompareRefactored(newDumpVal, oldDumpVal, UndoDumpVal, comparisons, floatCompare))
                         {
                             tempAddressList.Add(compareAddress);
                         }
                     }
 
                     resultAddressList = tempAddressList;
-                } else
+                }
+                else
                 {
-                    for(UInt32 i = newDump.StartAddress; i < newDump.EndAddress; i += bufferlength)
+                    for (uint i = newDump.StartAddress; i < newDump.EndAddress; i += bufferlength)
                     {
-                        UInt32 newDumpVal = newDump.ReadAddress(i, bufferlength);
-                        UInt32 oldDumpVal = newDumpVal;
-                        UInt32 UndoDumpVal = newDumpVal;
-                        if(sType != SearchType.Exact)
+                        uint newDumpVal = newDump.ReadAddress(i, bufferlength);
+                        uint oldDumpVal = newDumpVal;
+                        uint UndoDumpVal = newDumpVal;
+                        if (sType != SearchType.Exact)
                         {
                             oldDumpVal = oldDump.ReadAddress(i, bufferlength);
                             UndoDumpVal = oldDumpVal;
                         }
 
-                        if(CompareRefactored(newDumpVal, oldDumpVal, UndoDumpVal, comparisons, floatCompare))
+                        if (CompareRefactored(newDumpVal, oldDumpVal, UndoDumpVal, comparisons, floatCompare))
                         {
                             resultAddressList.Add(i);
                         }
@@ -1170,31 +1044,27 @@ namespace GeckoApp
                 }
             }
 
-            if(UnknownStart && !InitialSearch)
+            if (UnknownStart && !InitialSearch)
             {
                 UnknownStart = false;
             }
 
             dumpNum++;
 
-            if(resultAddressList.Count == 0 && !UnknownStart)
+            if (resultAddressList.Count == 0 && !UnknownStart)
             {
-                DialogResult result = MessageBox.Show(null,
-                                                      "No search results!\n\nTo undo, press Yes\nTo restart, press No",
-                                                      "No search results!",
-                                                      MessageBoxButtons.YesNo,
-                                                      MessageBoxIcon.Exclamation);
+                DialogResult result = MessageBox.Show(null, "No search results!\n\nTo undo, press Yes\nTo restart, press No", "No search results!", MessageBoxButtons.YesNo, MessageBoxIcon.Exclamation);
                 bool UndoSuccess = false;
-                if(result == DialogResult.Yes)
+                if (result == DialogResult.Yes)
                 {
                     UndoSuccess = UndoSearch();
-                    if(!UndoSuccess)
+                    if (!UndoSuccess)
                     {
                         MessageBox.Show("Could not undo!  Restarting search");
                     }
                 }
 
-                if(!UndoSuccess)
+                if (!UndoSuccess)
                 {
                     NewSearch = true;
                     nxButton.Enabled = false;
@@ -1212,22 +1082,24 @@ namespace GeckoApp
             return true;
         }
 
-        public void SafeDump(UInt32 startdump, UInt32 enddump, Dump memdump)
+        public void SafeDump(uint startdump, uint enddump, Dump memdump)
         {
             bool finished = false;
-            while(!finished)
+            while (!finished)
             {
                 try
                 {
                     gecko.Dump(startdump, enddump, memdump);
                     finished = true;
-                } catch(ETCPGeckoException e)
+                }
+                catch (ETCPGeckoException e)
                 {
                     exceptionHandling.HandleException(e);
-                    if(startdump == memdump.ReadCompletedAddress)
+                    if (startdump == memdump.ReadCompletedAddress)
                     {
                         finished = true;
-                    } else
+                    }
+                    else
                     {
                         startdump = memdump.ReadCompletedAddress;
                     }
@@ -1235,9 +1107,11 @@ namespace GeckoApp
             }
         }
 
+
+
         public bool UndoSearch()
         {
-            if(newDump == null || oldDump == null || undoDump == null)
+            if (newDump == null || oldDump == null || undoDump == null)
             {
                 return false;
             }
@@ -1258,9 +1132,9 @@ namespace GeckoApp
 
         public bool SaveSearch(string path, bool compressed)
         {
-            BinaryFormatter serializeResults = new BinaryFormatter();
+            System.Runtime.Serialization.Formatters.Binary.BinaryFormatter serializeResults = new System.Runtime.Serialization.Formatters.Binary.BinaryFormatter();
 
-            if(!compressed)
+            if (!compressed)
             {
                 FileStream resultFile = new FileStream(path, FileMode.Create);
                 serializeResults.Serialize(resultFile, sSize);
@@ -1269,7 +1143,7 @@ namespace GeckoApp
             }
 
             ZipOutputStream resultStream = new ZipOutputStream(path);
-            resultStream.CompressionLevel = CompressionLevel.BestSpeed;
+            resultStream.CompressionLevel = Ionic.Zlib.CompressionLevel.BestSpeed;
             resultStream.PutNextEntry("ResList");
 
             serializeResults.Serialize(resultStream, sSize);
@@ -1301,14 +1175,14 @@ namespace GeckoApp
         public bool LoadSearchHistory(string path)
         {
             searchHistory.LoadHistory(path, out dumpNum, out sSize);
-            if(dumpNum > 0)
+            if (dumpNum > 0)
             {
                 newDump = searchHistory.LoadSearchDump(dumpNum);
                 resultAddressList = searchHistory.LoadSearchList(dumpNum);
             }
-            if(dumpNum > 1)
+            if (dumpNum > 1)
                 oldDump = searchHistory.LoadSearchDump(dumpNum - 1);
-            if(dumpNum > 2)
+            if (dumpNum > 2)
                 undoDump = searchHistory.LoadSearchDump(dumpNum - 2);
             return dumpNum == 0;
         }
@@ -1321,6 +1195,7 @@ namespace GeckoApp
 
         public bool LoadSearch(string path, bool compressed)
         {
+
             int oldSortedColumn = 0;
             SortOrder oldSortOrder = SortOrder.Ascending;
             if (gView.SortedColumn != null)
@@ -1329,7 +1204,7 @@ namespace GeckoApp
                 oldSortOrder = gView.SortOrder;
             }
 
-            BinaryFormatter serializeResults = new BinaryFormatter();
+            System.Runtime.Serialization.Formatters.Binary.BinaryFormatter serializeResults = new System.Runtime.Serialization.Formatters.Binary.BinaryFormatter();
 
             if (!compressed)
             {
@@ -1347,11 +1222,18 @@ namespace GeckoApp
                 resultStream.Close();
                 resultStream.Dispose();
             }
-            NewSearch = true;
-            nxButton.Enabled = false;
-            prvButton.Enabled = false;
-            resLab.Text = "No results found";
-            return false;
+
+            {
+                NewSearch = true;
+                nxButton.Enabled = false;
+                prvButton.Enabled = false;
+                resLab.Text = "No results found";
+                return false;
+            }
+
+            UpdateGridViewPage(true);
+
+            return true;
         }
 
         public void DeleteResults(DataGridViewSelectedRowCollection deletingCollection)
@@ -1359,7 +1241,7 @@ namespace GeckoApp
             int pageOffset = cPage * pageSize;
             List<int> deletedIndices = new List<int>();
 
-            foreach(DataGridViewRow row in gView.SelectedRows)
+            foreach (DataGridViewRow row in gView.SelectedRows)
             {
                 deletedIndices.Add(row.Index);
             }
@@ -1367,7 +1249,7 @@ namespace GeckoApp
             deletedIndices.Sort();
             deletedIndices.Reverse();
 
-            for(int i = 0; i < deletedIndices.Count; i++)
+            for (int i = 0; i < deletedIndices.Count; i++)
             {
                 resultAddressList.RemoveAt(pageOffset + deletedIndices[i]);
             }
@@ -1390,27 +1272,26 @@ namespace GeckoApp
         public void UpdateGridViewPage(bool ResizeGridView)
         {
             int PageCount = resultAddressList.Count / 256;
-            if(resultAddressList.Count % 256 != 0) PageCount++;
+            if (resultAddressList.Count % 256 != 0) PageCount++;
             cPages = PageCount;
             pageUpDown.Maximum = Convert.ToDecimal(cPages);
 
             bool HadSelectedCells = gView.Rows.GetRowCount(DataGridViewElementStates.Selected) > 0;
-            if(HadSelectedCells)
+            if (HadSelectedCells)
             {
-                oldSelectedRow = Math.Min(gView.SelectedRows[0].Index,
-                                          gView.SelectedRows[gView.SelectedRows.Count - 1].Index);
+                oldSelectedRow = Math.Min(gView.SelectedRows[0].Index, gView.SelectedRows[gView.SelectedRows.Count - 1].Index);
             }
 
             PrintPageAlt();
-            if(HadSelectedCells && gView.Rows.Count > 0)
+            if (HadSelectedCells && gView.Rows.Count > 0)
             {
-                if(oldSelectedRow >= gView.Rows.Count)
+                if (oldSelectedRow >= gView.Rows.Count)
                 {
                     oldSelectedRow = gView.Rows.Count - 1;
                 }
 
                 gView.Rows[0].Selected = false;
-                foreach(DataGridViewRow row in gView.SelectedRows)
+                foreach (DataGridViewRow row in gView.SelectedRows)
                 {
                     row.Selected = false;
                 }
@@ -1420,7 +1301,7 @@ namespace GeckoApp
                 gView.CurrentCell = gView.SelectedRows[0].Cells[0];
             }
 
-            if(ResizeGridView)
+            if (ResizeGridView)
             {
                 int col1Width = gView.Columns[1].Width, col2Width = gView.Columns[2].Width, col3Width = gView.Columns[3].Width;
                 gView.AutoResizeColumn(1, DataGridViewAutoSizeColumnMode.AllCells);
@@ -1444,7 +1325,7 @@ namespace GeckoApp
         {
             SearchResultComparer comparer = new SearchResultComparer();
             comparer.sortedColumn = gView.SortedColumn.Index;
-            if(gView.SortOrder == SortOrder.Descending)
+            if (gView.SortOrder == SortOrder.Descending)
             {
                 comparer.descending = true;
             }
@@ -1457,46 +1338,34 @@ namespace GeckoApp
             PrintPageAlt();
         }
 
-        public class SearchResultComparer : IComparer<UInt32>
+        public class SearchResultComparer : IComparer<uint>
         {
             public int sortedColumn = 0;
             public bool descending = false;
             public Dump oldDump, newDump;
-
-            public int Compare(UInt32 x, UInt32 y)
+            public int Compare(uint x, uint y)
             {
-                if(x == y || y == x)
+                if (x == null || y == null)
                 {
                     return 0;
-                } else
+                }
+                else
                 {
                     int retval = 0;
-                    switch(sortedColumn)
+                    switch (sortedColumn)
                     {
-                        case 0:
-                            retval = x.CompareTo(y);
-                            break;
-                        case 1:
-                            if(oldDump != null) retval = oldDump.ReadAddress32(x).CompareTo(oldDump.ReadAddress32(y));
-                            break;
-                        case 2:
-                            if(newDump != null) retval = newDump.ReadAddress32(x).CompareTo(newDump.ReadAddress32(y));
-                            break;
-                        case 3:
-                            if(oldDump != null && newDump != null) retval = (newDump.ReadAddress32(x) -
-                                                                       oldDump.ReadAddress32(x)).CompareTo(newDump.ReadAddress32(y) -
-                                                                       oldDump.ReadAddress32(y));
-                            break;
-                        default:
-                            retval = 0;
-                            break;
+                        case 0: retval = x.CompareTo(y); break;
+                        case 1: if (oldDump != null) retval = oldDump.ReadAddress32(x).CompareTo(oldDump.ReadAddress32(y)); break;
+                        case 2: if (newDump != null) retval = newDump.ReadAddress32(x).CompareTo(newDump.ReadAddress32(y)); break;
+                        case 3: if (oldDump != null && newDump != null) retval = (newDump.ReadAddress32(x) - oldDump.ReadAddress32(x)).CompareTo(newDump.ReadAddress32(y) - oldDump.ReadAddress32(y)); break;
+                        default: retval = 0; break;
                     }
-                    if(retval == 0)
+                    if (retval == 0)
                     {
                         retval = x.CompareTo(y);
                     }
 
-                    if(descending)
+                    if (descending)
                     {
                         retval *= -1;
                     }
@@ -1505,4 +1374,6 @@ namespace GeckoApp
             }
         }
     }
+
 }
+

@@ -9,18 +9,18 @@ namespace AMS.Profile
     /// <remarks>
     ///   Config files are used by Windows and Web apps to store application-specific configuration information.
     ///   The System.Configuration namespace contains a variety of classes that may be used to retrieve the data
-    ///   from config files; however there is no provision for writing to such files.  The reason: they're only
-    ///   meant to be read by the program, not written.  For this reason, I initially considered not writing a
-    ///   Profile class for config files.  Instead, I created a separate <see cref="Xml" /> class that stores
-    ///   profile data in its own XML format, meant for a separate file.  Although that is the preferred choice,
-    ///   there may still be some developers who, for whatever reason, need a way to write to config files at
+    ///   from config files; however there is no provision for writing to such files.  The reason: they're only 
+    ///   meant to be read by the program, not written.  For this reason, I initially considered not writing a 
+    ///   Profile class for config files.  Instead, I created a separate <see cref="Xml" /> class that stores 
+    ///   profile data in its own XML format, meant for a separate file.  Although that is the preferred choice, 
+    ///   there may still be some developers who, for whatever reason, need a way to write to config files at 
     ///   run-time.  If you're one of those, this class is for you.
-    ///   <para>
-    ///   By default this class formats the data inside the config file as follows.
-    ///   (Notice that XML elements cannot contain spaces so this class converts them to underscores.) </para>
-    ///   <code>
+    ///   <para> 
+    ///   By default this class formats the data inside the config file as follows.  
+    ///   (Notice that XML elements cannot contain spaces so this class converts them to underscores.) </para> 
+    ///   <code> 
     ///   &lt;configuration&gt;
-    ///     &lt;configSections&gt;
+    ///     &lt;configSections&gt; 
     ///       &lt;sectionGroup name="profile"&gt;
     ///         &lt;section name="A_Section" type="System.Configuration.NameValueSectionHandler, System, Version=1.0.3300.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, Custom=null" /&gt;
     ///         &lt;section name="Another_Section" type="System.Configuration.NameValueSectionHandler, System, Version=1.0.3300.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, Custom=null" /&gt;
@@ -40,26 +40,26 @@ namespace AMS.Profile
     ///     &lt;/profile&gt;
     ///   &lt;/configuration&gt;
     ///   </code>
-    ///   <para>
+    ///   <para> 
     ///   If you wanted to read the value of "A_Section/An Entry" using the System.Configuration classes, you'd do it using the following code: </para>
-    ///   <code>
+    ///   <code> 
     ///   NameValueCollection section = (NameValueCollection)ConfigurationSettings.GetConfig("profile/A_Section");
     ///   string value = section["An Entry"];
     ///   </code>
-    ///   <para>
-    ///   One thing to keep in mind is that .NET caches the config data as it reads it, so any subsequent
+    ///   <para> 
+    ///   One thing to keep in mind is that .NET caches the config data as it reads it, so any subsequent 
     ///   updates to it on the file will not be seen by the System.Configuration classes, at least for Windows apps.
     ///   The Config class, however, has no such problem since the data is read from the file every time,
     ///   unless <see cref="XmlBased.Buffering" /> is enabled.
     ///   The equivalent of the above code would look like this: </para>
-    ///   <code>
+    ///   <code> 
     ///   Config config = new Config();
     ///   string value = config.GetValue("A Section", "An Entry", null);
-    ///   </code>
-    ///   <para>
+    ///   </code> 
+    ///   <para> 
     ///   As a bonus, you may use the Config class to access the "appSettings" section by clearing the
     ///   GroupName property.  Here's an example: </para>
-    ///   <code>
+    ///   <code> 
     ///   Config config = new Config();
     ///   config.GroupName = null;  // don't use a section group
     ///   ...
@@ -70,7 +70,6 @@ namespace AMS.Profile
     public class Config : XmlBased
     {
         private string m_groupName = "profile";
-
         private const string SECTION_TYPE = "System.Configuration.NameValueSectionHandler, System, Version=1.0.3300.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, Custom=null";
 
         /// <summary>
@@ -83,7 +82,8 @@ namespace AMS.Profile
         ///   Initializes a new instance of the Config class by setting the <see cref="Profile.Name" /> to the given file name. </summary>
         /// <param name="fileName">
         ///   The name of the Config file to initialize the <see cref="Profile.Name" /> property with. </param>
-        public Config(string fileName) : base(fileName)
+        public Config(string fileName) :
+            base(fileName)
         {
         }
 
@@ -91,7 +91,8 @@ namespace AMS.Profile
         ///   Initializes a new instance of the Config class based on another Config object. </summary>
         /// <param name="config">
         ///   The Config object whose properties and events are used to initialize the object being constructed. </param>
-        public Config(Config config) : base(config)
+        public Config(Config config) :
+            base(config)
         {
             m_groupName = config.m_groupName;
         }
@@ -131,9 +132,9 @@ namespace AMS.Profile
         ///   descendants of "configuration\profile".  However, this property may be set to null so that
         ///   all sections can be placed directly under "configuration".  This is useful for reading/writing
         ///   the popular "appSettings" section, which may also be retrieved via the System.Configuration.ConfigurationSettings.AppSettings property.
-        ///   <para>The <see cref="Profile.Changing" /> event is raised before changing this property.
-        ///   If its <see cref="ProfileChangingArgs.Cancel" /> property is set to true, this method
-        ///   returns immediately without changing this property.  After the property has been changed,
+        ///   <para>The <see cref="Profile.Changing" /> event is raised before changing this property.  
+        ///   If its <see cref="ProfileChangingArgs.Cancel" /> property is set to true, this method 
+        ///   returns immediately without changing this property.  After the property has been changed, 
         ///   the <see cref="Profile.Changed" /> event is raised.</para> </remarks>
         public string GroupName
         {
@@ -144,18 +145,18 @@ namespace AMS.Profile
             set
             {
                 VerifyNotReadOnly();
-                if(m_groupName == value)
+                if (m_groupName == value)
                     return;
 
-                if(!RaiseChangeEvent(true, ProfileChangeType.Other, null, "GroupName", value))
+                if (!RaiseChangeEvent(true, ProfileChangeType.Other, null, "GroupName", value))
                     return;
 
                 m_groupName = value;
-                if(m_groupName != null)
+                if (m_groupName != null)
                 {
                     m_groupName = m_groupName.Replace(' ', '_');
 
-                    if(m_groupName.IndexOf(':') >= 0)
+                    if (m_groupName.IndexOf(':') >= 0)
                         throw new XmlException("GroupName may not contain a namespace prefix.");
                 }
 
@@ -186,7 +187,7 @@ namespace AMS.Profile
         }
 
         /// <summary>
-        ///   Retrieves whether we don't have a valid GroupName and a given section is
+        ///   Retrieves whether we don't have a valid GroupName and a given section is 
         ///   equal to "appSettings". </summary>
         /// <remarks>
         ///   This method helps us determine whether we need to deal with the "configuration\configSections" element. </remarks>
@@ -202,14 +203,14 @@ namespace AMS.Profile
         /// <exception cref="ArgumentNullException">
         ///   section is null. </exception>
         /// <remarks>
-        ///   This method first calls <see cref="Profile.VerifyAndAdjustSection">Profile.VerifyAndAdjustSection</see>
-        ///   and then replaces any spaces in the section with underscores.  This is needed
+        ///   This method first calls <see cref="Profile.VerifyAndAdjustSection">Profile.VerifyAndAdjustSection</see> 
+        ///   and then replaces any spaces in the section with underscores.  This is needed 
         ///   because XML element names may not contain spaces.  </remarks>
         /// <seealso cref="Profile.VerifyAndAdjustEntry" />
         protected override void VerifyAndAdjustSection(ref string section)
         {
             base.VerifyAndAdjustSection(ref section);
-            if(section.IndexOf(' ') >= 0)
+            if (section.IndexOf(' ') >= 0)
                 section = section.Replace(' ', '_');
         }
 
@@ -222,7 +223,7 @@ namespace AMS.Profile
         /// <param name="value">
         ///   The value to set. If it's null, the entry is removed. </param>
         /// <exception cref="InvalidOperationException">
-        ///   <see cref="Profile.Name" /> is null or empty,
+        ///   <see cref="Profile.Name" /> is null or empty, 
         ///   <see cref="Profile.ReadOnly" /> is true, or
         ///   the resulting XML document is invalid. </exception>
         /// <exception cref="ArgumentNullException">
@@ -232,9 +233,9 @@ namespace AMS.Profile
         ///	  the resulting XML document would not be well formed. </exception>
         /// <remarks>
         ///   If the Config file does not exist, it is created.
-        ///   The <see cref="Profile.Changing" /> event is raised before setting the value.
-        ///   If its <see cref="ProfileChangingArgs.Cancel" /> property is set to true, this method
-        ///   returns immediately without setting the value.  After the value has been set,
+        ///   The <see cref="Profile.Changing" /> event is raised before setting the value.  
+        ///   If its <see cref="ProfileChangingArgs.Cancel" /> property is set to true, this method 
+        ///   returns immediately without setting the value.  After the value has been set, 
         ///   the <see cref="Profile.Changed" /> event is raised.
         ///   <para>
         ///   Note: If <see cref="XmlBased.Buffering" /> is enabled, the value is not actually written to the
@@ -242,7 +243,7 @@ namespace AMS.Profile
         /// <seealso cref="GetValue" />
         public override void SetValue(string section, string entry, object value)
         {
-            if(value == null)
+            if (value == null)
             {
                 RemoveEntry(section, entry);
                 return;
@@ -253,17 +254,17 @@ namespace AMS.Profile
             VerifyAndAdjustSection(ref section);
             VerifyAndAdjustEntry(ref entry);
 
-            if(!RaiseChangeEvent(true, ProfileChangeType.SetValue, section, entry, value))
+            if (!RaiseChangeEvent(true, ProfileChangeType.SetValue, section, entry, value))
                 return;
 
             bool hasGroupName = HasGroupName;
             bool isAppSettings = IsAppSettings(section);
 
-            if((m_buffer == null || m_buffer.IsEmpty) && !File.Exists(Name))
+            if ((m_buffer == null || m_buffer.IsEmpty) && !File.Exists(Name))
             {
                 XmlTextWriter writer = null;
 
-                if(m_buffer == null)
+                if (m_buffer == null)
                     writer = new XmlTextWriter(Name, Encoding);
                 else
                     writer = new XmlTextWriter(new MemoryStream(), Encoding);
@@ -273,10 +274,10 @@ namespace AMS.Profile
                 writer.WriteStartDocument();
 
                 writer.WriteStartElement("configuration");
-                if(!isAppSettings)
+                if (!isAppSettings)
                 {
                     writer.WriteStartElement("configSections");
-                    if(hasGroupName)
+                    if (hasGroupName)
                     {
                         writer.WriteStartElement("sectionGroup");
                         writer.WriteAttributeString("name", null, m_groupName);
@@ -286,11 +287,11 @@ namespace AMS.Profile
                     writer.WriteAttributeString("type", null, SECTION_TYPE);
                     writer.WriteEndElement();
 
-                    if(hasGroupName)
+                    if (hasGroupName)
                         writer.WriteEndElement();
                     writer.WriteEndElement();
                 }
-                if(hasGroupName)
+                if (hasGroupName)
                     writer.WriteStartElement(m_groupName);
                 writer.WriteStartElement(section);
                 writer.WriteStartElement("add");
@@ -298,11 +299,11 @@ namespace AMS.Profile
                 writer.WriteAttributeString("value", null, value.ToString());
                 writer.WriteEndElement();
                 writer.WriteEndElement();
-                if(hasGroupName)
+                if (hasGroupName)
                     writer.WriteEndElement();
                 writer.WriteEndElement();
 
-                if(m_buffer != null)
+                if (m_buffer != null)
                     m_buffer.Load(writer);
                 writer.Close();
 
@@ -316,17 +317,17 @@ namespace AMS.Profile
             XmlAttribute attribute = null;
             XmlNode sectionNode = null;
 
-            if(!isAppSettings)
+            if (!isAppSettings)
             {
                 XmlNode sectionsNode = root.SelectSingleNode("configSections");
-                if(sectionsNode == null)
+                if (sectionsNode == null)
                     sectionsNode = root.AppendChild(doc.CreateElement("configSections"));
 
                 XmlNode sectionGroupNode = sectionsNode;
-                if(hasGroupName)
+                if (hasGroupName)
                 {
                     sectionGroupNode = sectionsNode.SelectSingleNode("sectionGroup[@name=\"" + m_groupName + "\"]");
-                    if(sectionGroupNode == null)
+                    if (sectionGroupNode == null)
                     {
                         XmlElement element = doc.CreateElement("sectionGroup");
                         attribute = doc.CreateAttribute("name");
@@ -337,7 +338,7 @@ namespace AMS.Profile
                 }
 
                 sectionNode = sectionGroupNode.SelectSingleNode("section[@name=\"" + section + "\"]");
-                if(sectionNode == null)
+                if (sectionNode == null)
                 {
                     XmlElement element = doc.CreateElement("section");
                     attribute = doc.CreateAttribute("name");
@@ -353,19 +354,19 @@ namespace AMS.Profile
             }
 
             XmlNode groupNode = root;
-            if(hasGroupName)
+            if (hasGroupName)
             {
                 groupNode = root.SelectSingleNode(m_groupName);
-                if(groupNode == null)
+                if (groupNode == null)
                     groupNode = root.AppendChild(doc.CreateElement(m_groupName));
             }
 
             sectionNode = groupNode.SelectSingleNode(section);
-            if(sectionNode == null)
+            if (sectionNode == null)
                 sectionNode = groupNode.AppendChild(doc.CreateElement(section));
 
             XmlNode entryNode = sectionNode.SelectSingleNode("add[@key=\"" + entry + "\"]");
-            if(entryNode == null)
+            if (entryNode == null)
             {
                 XmlElement element = doc.CreateElement("add");
                 attribute = doc.CreateAttribute("key");
@@ -413,7 +414,8 @@ namespace AMS.Profile
 
                 XmlNode entryNode = root.SelectSingleNode(GroupNameSlash + section + "/add[@key=\"" + entry + "\"]");
                 return entryNode.Attributes["value"].Value;
-            } catch
+            }
+            catch
             {
                 return null;
             }
@@ -434,10 +436,10 @@ namespace AMS.Profile
         ///	  Parse error in the XML being loaded from the file or
         ///	  the resulting XML document would not be well formed. </exception>
         /// <remarks>
-        ///   The <see cref="Profile.Changing" /> event is raised before removing the entry.
-        ///   If its <see cref="ProfileChangingArgs.Cancel" /> property is set to true, this method
-        ///   returns immediately without removing the entry.  After the entry has been removed,
-        ///   the <see cref="Profile.Changed" /> event is raised.
+        ///   The <see cref="Profile.Changing" /> event is raised before removing the entry.  
+        ///   If its <see cref="ProfileChangingArgs.Cancel" /> property is set to true, this method 
+        ///   returns immediately without removing the entry.  After the entry has been removed, 
+        ///   the <see cref="Profile.Changed" /> event is raised. 
         ///   <para>
         ///   Note: If <see cref="XmlBased.Buffering" /> is enabled, the entry is not removed from the
         ///   Config file until the buffer is flushed (or closed). </para></remarks>
@@ -449,15 +451,15 @@ namespace AMS.Profile
             VerifyAndAdjustEntry(ref entry);
 
             XmlDocument doc = GetXmlDocument();
-            if(doc == null)
+            if (doc == null)
                 return;
 
             XmlElement root = doc.DocumentElement;
             XmlNode entryNode = root.SelectSingleNode(GroupNameSlash + section + "/add[@key=\"" + entry + "\"]");
-            if(entryNode == null)
+            if (entryNode == null)
                 return;
 
-            if(!RaiseChangeEvent(true, ProfileChangeType.RemoveEntry, section, entry, null))
+            if (!RaiseChangeEvent(true, ProfileChangeType.RemoveEntry, section, entry, null))
                 return;
 
             entryNode.ParentNode.RemoveChild(entryNode);
@@ -478,9 +480,9 @@ namespace AMS.Profile
         ///	  Parse error in the XML being loaded from the file or
         ///	  the resulting XML document would not be well formed. </exception>
         /// <remarks>
-        ///   The <see cref="Profile.Changing" /> event is raised before removing the section.
-        ///   If its <see cref="ProfileChangingArgs.Cancel" /> property is set to true, this method
-        ///   returns immediately without removing the section.  After the section has been removed,
+        ///   The <see cref="Profile.Changing" /> event is raised before removing the section.  
+        ///   If its <see cref="ProfileChangingArgs.Cancel" /> property is set to true, this method 
+        ///   returns immediately without removing the section.  After the section has been removed, 
         ///   the <see cref="Profile.Changed" /> event is raised.
         ///   <para>
         ///   Note: If <see cref="XmlBased.Buffering" /> is enabled, the section is not removed from the
@@ -492,30 +494,26 @@ namespace AMS.Profile
             VerifyAndAdjustSection(ref section);
 
             XmlDocument doc = GetXmlDocument();
-            if(doc == null)
+            if (doc == null)
                 return;
 
             XmlElement root = doc.DocumentElement;
-            if(root == null)
+            if (root == null)
                 return;
 
             XmlNode sectionNode = root.SelectSingleNode(GroupNameSlash + section);
-            if(sectionNode == null)
+            if (sectionNode == null)
                 return;
 
-            if(!RaiseChangeEvent(true, ProfileChangeType.RemoveSection, section, null, null))
+            if (!RaiseChangeEvent(true, ProfileChangeType.RemoveSection, section, null, null))
                 return;
 
             sectionNode.ParentNode.RemoveChild(sectionNode);
 
-            if(!IsAppSettings(section))
+            if (!IsAppSettings(section))
             {
-                sectionNode = root.SelectSingleNode("configSections/" +
-                    (HasGroupName ? ("sectionGroup[@name=\"" + m_groupName + "\"]") : string.Empty) +
-                    "/section[@name=\"" +
-                    section +
-                    "\"]");
-                if(sectionNode == null)
+                sectionNode = root.SelectSingleNode("configSections/" + (HasGroupName ? ("sectionGroup[@name=\"" + m_groupName + "\"]") : string.Empty) + "/section[@name=\"" + section + "\"]");
+                if (sectionNode == null)
                     return;
 
                 sectionNode.ParentNode.RemoveChild(sectionNode);
@@ -530,7 +528,7 @@ namespace AMS.Profile
         /// <param name="section">
         ///   The name of the section holding the entries. </param>
         /// <returns>
-        ///   If the section exists, the return value is an array with the names of its entries;
+        ///   If the section exists, the return value is an array with the names of its entries; 
         ///   otherwise it's null. </returns>
         /// <exception cref="InvalidOperationException">
         ///	  <see cref="Profile.Name" /> is null or empty. </exception>
@@ -542,7 +540,7 @@ namespace AMS.Profile
         /// <seealso cref="GetSectionNames" />
         public override string[] GetEntryNames(string section)
         {
-            if(!HasSection(section))
+            if (!HasSection(section))
                 return null;
 
             VerifyAndAdjustSection(ref section);
@@ -550,13 +548,13 @@ namespace AMS.Profile
             XmlElement root = doc.DocumentElement;
 
             XmlNodeList entryNodes = root.SelectNodes(GroupNameSlash + section + "/add[@key]");
-            if(entryNodes == null)
+            if (entryNodes == null)
                 return null;
 
             string[] entries = new string[entryNodes.Count];
             int i = 0;
 
-            foreach(XmlNode node in entryNodes)
+            foreach (XmlNode node in entryNodes)
                 entries[i++] = node.Attributes["key"].Value;
 
             return entries;
@@ -576,25 +574,25 @@ namespace AMS.Profile
         public override string[] GetSectionNames()
         {
             XmlDocument doc = GetXmlDocument();
-            if(doc == null)
+            if (doc == null)
                 return null;
 
             XmlElement root = doc.DocumentElement;
-            if(root == null)
+            if (root == null)
                 return null;
 
             XmlNode groupNode = (HasGroupName ? root.SelectSingleNode(m_groupName) : root);
-            if(groupNode == null)
+            if (groupNode == null)
                 return null;
 
             XmlNodeList sectionNodes = groupNode.ChildNodes;
-            if(sectionNodes == null)
+            if (sectionNodes == null)
                 return null;
 
             string[] sections = new string[sectionNodes.Count];
             int i = 0;
 
-            foreach(XmlNode node in sectionNodes)
+            foreach (XmlNode node in sectionNodes)
                 sections[i++] = node.Name;
 
             return sections;

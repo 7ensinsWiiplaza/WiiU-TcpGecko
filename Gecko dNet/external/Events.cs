@@ -5,47 +5,47 @@ namespace AMS.Profile
     /// <summary>
     ///   Types of changes that may be made to a Profile object. </summary>
     /// <remarks>
-    ///   A variable of this type is passed inside the ProfileChangedArgs object
+    ///   A variable of this type is passed inside the ProfileChangedArgs object 
     ///   for the <see cref="Profile.Changing" /> and <see cref="Profile.Changed" /> events </remarks>
     /// <seealso cref="ProfileChangedArgs" />
     public enum ProfileChangeType
     {
-        /// <summary>
-        ///   The change refers to the <see cref="Profile.Name" /> property. </summary>
-        /// <remarks>
+        /// <summary> 
+        ///   The change refers to the <see cref="Profile.Name" /> property. </summary>		
+        /// <remarks> 
         ///   <see cref="ProfileChangedArgs.Value" /> will contain the new name. </remarks>
         Name,
 
-        /// <summary>
-        ///   The change refers to the <see cref="Profile.ReadOnly" /> property. </summary>
-        /// <remarks>
+        /// <summary> 
+        ///   The change refers to the <see cref="Profile.ReadOnly" /> property. </summary>		
+        /// <remarks> 
         ///   <see cref="ProfileChangedArgs.Value" /> will be true. </remarks>
         ReadOnly,
 
-        /// <summary>
-        ///   The change refers to the <see cref="Profile.SetValue" /> method. </summary>
-        /// <remarks>
-        ///   <see cref="ProfileChangedArgs.Section" />,  <see cref="ProfileChangedArgs.Entry" />,
-        ///   and <see cref="ProfileChangedArgs.Value" /> will be set to the same values passed
+        /// <summary> 
+        ///   The change refers to the <see cref="Profile.SetValue" /> method. </summary>		
+        /// <remarks> 
+        ///   <see cref="ProfileChangedArgs.Section" />,  <see cref="ProfileChangedArgs.Entry" />, 
+        ///   and <see cref="ProfileChangedArgs.Value" /> will be set to the same values passed 
         ///   to the SetValue method. </remarks>
         SetValue,
 
-        /// <summary>
-        ///   The change refers to the <see cref="Profile.RemoveEntry" /> method. </summary>
-        /// <remarks>
-        ///   <see cref="ProfileChangedArgs.Section" /> and <see cref="ProfileChangedArgs.Entry" />
+        /// <summary> 
+        ///   The change refers to the <see cref="Profile.RemoveEntry" /> method. </summary>		
+        /// <remarks> 
+        ///   <see cref="ProfileChangedArgs.Section" /> and <see cref="ProfileChangedArgs.Entry" /> 
         ///   will be set to the same values passed to the RemoveEntry method. </remarks>
         RemoveEntry,
 
-        /// <summary>
-        ///   The change refers to the <see cref="Profile.RemoveSection" /> method. </summary>
-        /// <remarks>
+        /// <summary> 
+        ///   The change refers to the <see cref="Profile.RemoveSection" /> method. </summary>		
+        /// <remarks> 
         ///   <see cref="ProfileChangedArgs.Section" /> will contain the name of the section passed to the RemoveSection method. </remarks>
         RemoveSection,
 
-        /// <summary>
-        ///   The change refers to method or property specific to the Profile class. </summary>
-        /// <remarks>
+        /// <summary> 
+        ///   The change refers to method or property specific to the Profile class. </summary>		
+        /// <remarks> 
         ///   <see cref="ProfileChangedArgs.Entry" /> will contain the name of the  method or property.
         ///   <see cref="ProfileChangedArgs.Value" /> will contain the new value. </remarks>
         Other
@@ -55,11 +55,12 @@ namespace AMS.Profile
     ///   EventArgs class to be passed as the second parameter of a <see cref="Profile.Changed" /> event handler. </summary>
     /// <remarks>
     ///   This class provides all the information relevant to the change made to the Profile.
-    ///   It is also used as a convenient base class for the ProfileChangingArgs class which is passed
+    ///   It is also used as a convenient base class for the ProfileChangingArgs class which is passed 
     ///   as the second parameter of the <see cref="Profile.Changing" /> event handler. </remarks>
     /// <seealso cref="ProfileChangingArgs" />
     public class ProfileChangedArgs : EventArgs
     {
+
         /// <summary>
         ///   Initializes a new instance of the ProfileChangedArgs class by initializing all of its properties. </summary>
         /// <param name="changeType">
@@ -89,8 +90,8 @@ namespace AMS.Profile
 
         /// <summary>
         ///   Gets the name of the entry involved in the change, or null if not applicable. </summary>
-        /// <remarks>
-        ///   If <see cref="ChangeType" /> is set to Other, this property holds the name of the
+        /// <remarks> 
+        ///   If <see cref="ChangeType" /> is set to Other, this property holds the name of the 
         ///   method/property that was changed. </remarks>
         public string Entry { get; }
 
@@ -103,11 +104,12 @@ namespace AMS.Profile
     ///   EventArgs class to be passed as the second parameter of a <see cref="Profile.Changing" /> event handler. </summary>
     /// <remarks>
     ///   This class provides all the information relevant to the change about to be made to the Profile.
-    ///   Besides the properties of ProfileChangedArgs, it adds the Cancel property which allows the
+    ///   Besides the properties of ProfileChangedArgs, it adds the Cancel property which allows the 
     ///   event handler to prevent the change from happening. </remarks>
     /// <seealso cref="ProfileChangedArgs" />
     public class ProfileChangingArgs : ProfileChangedArgs
     {
+
         /// <summary>
         ///   Initializes a new instance of the ProfileChangingArgs class by initializing all of its properties. </summary>
         /// <param name="changeType">
@@ -119,16 +121,14 @@ namespace AMS.Profile
         /// <param name="value">
         ///   The new value for the entry or method/property, based on the value of changeType. </param>
         /// <seealso cref="ProfileChangeType" />
-        public ProfileChangingArgs(ProfileChangeType changeType, string section, string entry, object value) : base(changeType,
-                                                                                                                    section,
-                                                                                                                    entry,
-                                                                                                                    value)
+        public ProfileChangingArgs(ProfileChangeType changeType, string section, string entry, object value) :
+            base(changeType, section, entry, value)
         {
         }
 
         /// <summary>
         ///   Gets or sets whether the change about to the made should be canceled or not. </summary>
-        /// <remarks>
+        /// <remarks> 
         ///   By default this property is set to false, meaning that the change is allowed.  </remarks>
         public bool Cancel { get; set; }
     }
@@ -147,3 +147,4 @@ namespace AMS.Profile
     ///   The sender is always set to the Profile object that raised the event. </remarks>
     public delegate void ProfileChangedHandler(object sender, ProfileChangedArgs e);
 }
+

@@ -10,40 +10,38 @@ namespace GeckoApp
             InitializeComponent();
         }
 
-        public UInt32[] WAddress;
-        public String WName;
+        public uint[] WAddress;
+        public string WName;
         public WatchDataSize WDataSize;
 
         private void btn_OK_Click(object sender, EventArgs e)
         {
-            UInt32[] address;
-            if(inputName.Text == string.Empty)
+            uint[] address;
+            if (inputName.Text == string.Empty)
             {
                 MessageBox.Show("Please type in a code name!");
                 return;
             }
             bool okay = WatchList.TryStrToAddressList(inputAddress.Text, out address);
-            if(!okay)
+            if (!okay)
             {
                 MessageBox.Show("Unable to parse address");
-            } else
+            }
+            else
             {
                 WAddress = address;
                 WName = inputName.Text;
-                switch(DType.SelectedIndex)
+                switch (DType.SelectedIndex)
                 {
                     case 0:
                         WDataSize = WatchDataSize.Bit8;
                         break;
-
                     case 1:
                         WDataSize = WatchDataSize.Bit16;
                         break;
-
                     case 3:
                         WDataSize = WatchDataSize.SingleFp;
                         break;
-
                     default:
                         WDataSize = WatchDataSize.Bit32;
                         break;
@@ -70,20 +68,17 @@ namespace GeckoApp
 
             this.inputAddress.Text = WatchList.addressToString(entry.address);
             this.inputName.Text = entry.name;
-            switch(entry.dataSize)
+            switch (entry.dataSize)
             {
                 case WatchDataSize.Bit8:
                     this.DType.SelectedIndex = 0;
                     break;
-
                 case WatchDataSize.Bit16:
                     this.DType.SelectedIndex = 1;
                     break;
-
                 case WatchDataSize.SingleFp:
                     this.DType.SelectedIndex = 3;
                     break;
-
                 default:
                     this.DType.SelectedIndex = 2;
                     break;

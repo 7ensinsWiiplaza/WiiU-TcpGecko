@@ -1,17 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.IO;
 using System.Text;
 using System.Windows.Forms;
+
+using TCPTCPGecko;
 
 namespace GeckoApp
 {
     public struct CodeLine
     {
         public bool enabled;
-        public UInt32 left;
-        public UInt32 right;
+        public uint left;
+        public uint right;
     }
 
     public class CodeContent
@@ -22,13 +23,11 @@ namespace GeckoApp
         {
             lines = new List<CodeLine>();
         }
-
-        public void addLine(UInt32 left, UInt32 right)
+        public void addLine(uint left, uint right)
         {
             addLine(left, right, true);
         }
-
-        public void addLine(UInt32 left, UInt32 right, bool enabled)
+        public void addLine(uint left, uint right, bool enabled)
         {
             CodeLine newLine;
             newLine.left = left;
@@ -61,7 +60,7 @@ namespace GeckoApp
             }
         }
 
-        public String GetCodeName(int index)
+        public string GetCodeName(int index)
         {
             return codeOutput.Items[index].Text;
         }
@@ -80,13 +79,10 @@ namespace GeckoApp
 
         public int Count
         {
-            get
-            {
-                return codeOutput.Items.Count;
-            }
+            get { return codeOutput.Items.Count; }
         }
-
         public int SelectedIndex { get; set; }
+
 
         public CodeController(ListView PCodeOutput, TextBox PCodeValues)
         {
@@ -118,54 +114,55 @@ namespace GeckoApp
 
         private void SendModified()
         {
-            if(PCodesModified != null && activated)
+            if (PCodesModified != null && activated)
                 PCodesModified();
         }
 
-        public static CodeContent CodeTextBoxToCodeContent(String codeInput)
+        public static CodeContent CodeTextBoxToCodeContent(string codeInput)
         {
-            String parsedCode = string.Empty;
-            String stripedUnknown = string.Empty;
+            string parsedCode = string.Empty;
+            string stripedUnknown = string.Empty;
             int i;
 
-            for(i = 0; i < codeInput.Length; i++)
+            for (i = 0; i < codeInput.Length; i++)
             {
-                Char analyze = codeInput.ToUpper()[i];
+                char analyze = codeInput.ToUpper()[i];
 
-                if(Char.IsDigit(analyze) || (analyze == '-' || analyze == '/') || ((analyze >= 'A') && (analyze <= 'F')))
+                if (char.IsDigit(analyze) || (analyze == '-' || analyze == '/') || ((analyze >= 'A') && (analyze <= 'F')))
                     stripedUnknown += analyze;
             }
 
             int deactSigns = 0;
             List<int> deactCodes = new List<int>();
-            for(i = 0; i < stripedUnknown.Length; i++)
+            for (i = 0; i < stripedUnknown.Length; i++)
             {
-                Char analyze = stripedUnknown[i];
+                char analyze = stripedUnknown[i];
 
-                if(analyze == '-' || analyze == '/')
+                if (analyze == '-' || analyze == '/')
                 {
                     int pos = (i - deactSigns) / 16;
-                    if(!deactCodes.Contains(pos))
+                    if (!deactCodes.Contains(pos))
                         deactCodes.Add(pos);
                     deactSigns++;
-                } else
+                }
+                else
                     parsedCode += analyze;
             }
 
             CodeContent ncode = new CodeContent();
 
-            if(parsedCode.Length % 16 != 0)
+            if (parsedCode.Length % 16 != 0)
             {
                 MessageBox.Show("Adding 0s to fill up the code");
                 int loopCount = 16 - parsedCode.Length % 16;
-                for(int j = 0; j < loopCount; j++) parsedCode += "0";
+                for (int j = 0; j < loopCount; j++) parsedCode += "0";
             }
 
-            String hexString;
-            UInt32 left, right;
+            string hexString;
+            uint left, right;
             bool enabled;
 
-            for(i = 0; i < parsedCode.Length / 16; i++)
+            for (i = 0; i < parsedCode.Length / 16; i++)
             {
                 hexString = parsedCode.Substring(i * 16, 8);
                 left = Convert.ToUInt32(hexString, 16);
@@ -181,22 +178,23 @@ namespace GeckoApp
             return ncode;
         }
 
-        public bool UpdateCode(int index, String codeInput)
+        public bool UpdateCode(int index, string codeInput)
         {
-            if(index == -1)
+            if (index == -1)
                 return true;
 
             CodeContent ncode = CodeTextBoxToCodeContent(codeInput);
 
             CodeContent oldContent = (CodeContent)codeOutput.Items[index].Tag;
 
-            if(ncode.lines.Count != 0)
+            if (ncode.lines.Count != 0)
             {
                 codeOutput.Items[index].Tag = ncode;
                 SendModified();
             }
 
             return true;
+
         }
 
         public bool UpdateCode()
@@ -204,7 +202,7 @@ namespace GeckoApp
             return UpdateCode(SelectedIndex, codeValues.Text);
         }
 
-        public void AddCode(String name)
+        public void AddCode(string name)
         {
             CodeContent newCode = new CodeContent();
             ListViewItem addCode = codeOutput.Items.Add(name);
@@ -212,7 +210,7 @@ namespace GeckoApp
             SendModified();
         }
 
-        public void AddCode(CodeContent content, String name)
+        public void AddCode(CodeContent content, string name)
         {
             ListViewItem addCode = codeOutput.Items.Add(name);
             addCode.Tag = content;
@@ -221,10 +219,10 @@ namespace GeckoApp
 
         public void AddCode(CodeContent content, int index)
         {
-            if(index > -1 && index < codeOutput.Items.Count)
+            if (index > -1 && index < codeOutput.Items.Count)
             {
                 CodeContent newCode = new CodeContent();
-                foreach(CodeLine line in content.lines)
+                foreach (CodeLine line in content.lines)
                 {
                     newCode.addLine(line.left, line.right);
                 }
@@ -235,7 +233,7 @@ namespace GeckoApp
 
         public void Remove(int index)
         {
-            if(index < codeOutput.Items.Count)
+            if (index < codeOutput.Items.Count)
             {
                 codeOutput.Items[index].Selected = false;
                 codeOutput.Items.RemoveAt(index);
@@ -249,12 +247,12 @@ namespace GeckoApp
         public void Clear()
         {
             bool mod = false;
-            while(codeOutput.Items.Count > 0)
+            while (codeOutput.Items.Count > 0)
             {
                 Remove(0);
                 mod = true;
             }
-            if(mod)
+            if (mod)
                 SendModified();
         }
 
@@ -264,43 +262,44 @@ namespace GeckoApp
             codeOutput.Click -= codeOutput_SelectedIndexChanged;
             int len = e.Data.GetFormats().Length - 1;
             int i;
-            for(i = 0; i <= len; i++)
+            for (i = 0; i <= len; i++)
             {
-                if(e.Data.GetFormats()[i].Equals("System.Windows.Forms.ListView+SelectedListViewItemCollection"))
+                if (e.Data.GetFormats()[i].Equals("System.Windows.Forms.ListView+SelectedListViewItemCollection"))
                 {
                     e.Effect = DragDropEffects.Move;
                 }
             }
+
         }
 
         private void codeOutput_DragDrop(object sender, DragEventArgs e)
         {
-            if(codeOutput.SelectedItems.Count == 0)
+            if (codeOutput.SelectedItems.Count == 0)
             {
                 return;
             }
-            Point cp = codeOutput.PointToClient(new Point(e.X, e.Y));
+            System.Drawing.Point cp = codeOutput.PointToClient(new System.Drawing.Point(e.X, e.Y));
             ListViewItem dragToItem = codeOutput.GetItemAt(cp.X, cp.Y);
-            if(dragToItem == null)
+            if (dragToItem == null)
             {
                 return;
             }
             int dragToIndex = dragToItem.Index;
             ListViewItem[] sel = new ListViewItem[codeOutput.SelectedItems.Count];
-            for(int i = 0; i <= codeOutput.SelectedItems.Count - 1; i++)
+            for (int i = 0; i <= codeOutput.SelectedItems.Count - 1; i++)
             {
                 sel[i] = codeOutput.SelectedItems[i];
             }
             bool modified = false;
-            for(int i = 0; i < sel.GetLength(0); i++)
+            for (int i = 0; i < sel.GetLength(0); i++)
             {
                 ListViewItem dragItem = sel[i];
                 int itemIndex = dragToIndex;
-                if(itemIndex == dragItem.Index)
+                if (itemIndex == dragItem.Index)
                 {
                     return;
                 }
-                if(dragItem.Index < itemIndex)
+                if (dragItem.Index < itemIndex)
                     itemIndex++;
                 else
                     itemIndex = dragToIndex + i;
@@ -311,7 +310,7 @@ namespace GeckoApp
                 codeOutput.Items.Remove(dragItem);
                 modified = true;
             }
-            if(modified)
+            if (modified)
                 SendModified();
             codeOutput.Items[dragToIndex].Selected = true;
             codeOutput.FocusedItem = codeOutput.SelectedItems[0];
@@ -331,30 +330,31 @@ namespace GeckoApp
         private void codeOutput_SelectedIndexChanged(object sender, EventArgs e)
         {
             int newIndex;
-            if(codeOutput.SelectedIndices.Count == 0)
+            if (codeOutput.SelectedIndices.Count == 0)
                 newIndex = -1;
             else
                 newIndex = codeOutput.SelectedIndices[0];
 
-            if(newIndex == SelectedIndex)
+            if (newIndex == SelectedIndex)
                 return;
 
-            if(!UpdateCode())
+            if (!UpdateCode())
             {
                 codeOutput.Items[SelectedIndex].Selected = true;
                 return;
             }
 
             codeValues.Clear();
-            if(newIndex == -1 || newIndex >= codeOutput.Items.Count)
+            if (newIndex == -1 || newIndex >= codeOutput.Items.Count)
             {
                 SelectedIndex = -1;
                 codeValues.Enabled = false;
-            } else
+            }
+            else
             {
                 SelectedIndex = newIndex;
                 CodeContent codeData;
-                if(codeOutput.Items[newIndex].Tag == null)
+                if (codeOutput.Items[newIndex].Tag == null)
                     codeData = new CodeContent();
                 else
                     codeData = (CodeContent)codeOutput.Items[newIndex].Tag;
@@ -363,15 +363,15 @@ namespace GeckoApp
             }
         }
 
-        public static String CodeContentToCodeTextBox(CodeContent codeData)
+        public static string CodeContentToCodeTextBox(CodeContent codeData)
         {
-            String output = string.Empty;
-            for(int i = 0; i < codeData.lines.Count; i++)
+            string output = string.Empty;
+            for (int i = 0; i < codeData.lines.Count; i++)
             {
-                if(!codeData.lines[i].enabled)
+                if (!codeData.lines[i].enabled)
                     output += "--";
-                output += String.Format("{0:X8} ", codeData.lines[i].left);
-                output += String.Format("{0:X8}\r\n", codeData.lines[i].right);
+                output += string.Format("{0:X8} ", codeData.lines[i].left);
+                output += string.Format("{0:X8}\r\n", codeData.lines[i].right);
             }
             return output;
         }
@@ -386,14 +386,14 @@ namespace GeckoApp
             SendModified();
         }
 
-        private Byte[] toStream(UInt32 value)
+        private byte[] toStream(uint value)
         {
             return BitConverter.GetBytes(ByteSwap.Swap(value));
         }
 
         public void GenerateCheatStream(Stream output)
         {
-            if(output.CanWrite)
+            if (output.CanWrite)
             {
                 output.SetLength(0);
                 output.Seek(0, SeekOrigin.Begin);
@@ -401,16 +401,16 @@ namespace GeckoApp
                 output.Write(toStream(0x00D0C0DE), 0, 4);
 
                 CodeContent cCode;
-                foreach(ListViewItem li in codeOutput.Items)
-                    if(li.Checked)
+                foreach (ListViewItem li in codeOutput.Items)
+                    if (li.Checked)
                     {
-                        if(li.Tag == null)
+                        if (li.Tag == null)
                             cCode = new CodeContent();
                         else
                             cCode = (CodeContent)li.Tag;
-                        foreach(CodeLine line in cCode.lines)
+                        foreach (CodeLine line in cCode.lines)
                         {
-                            if(line.enabled)
+                            if (line.enabled)
                             {
                                 output.Write(toStream(line.left), 0, 4);
                                 output.Write(toStream(line.right), 0, 4);
@@ -423,30 +423,30 @@ namespace GeckoApp
             }
         }
 
-        public void toWGCFile(String output)
+        public void toWGCFile(string output)
         {
             StreamWriter textFile;
             textFile = new StreamWriter(output, false, Encoding.UTF8);
-            String prepend;
+            string prepend;
 
-            for(int i = 0; i < codeOutput.Items.Count; i++)
+            for (int i = 0; i < codeOutput.Items.Count; i++)
             {
                 CodeContent cCode;
-                if(codeOutput.Items[i].Tag == null)
+                if (codeOutput.Items[i].Tag == null)
                     cCode = new CodeContent();
                 else
                     cCode = (CodeContent)codeOutput.Items[i].Tag;
 
                 textFile.WriteLine("[" + codeOutput.Items[i].Text + "]");
                 prepend = (codeOutput.Items[i].Checked ? "* " : "  ");
-                foreach(CodeLine line in cCode.lines)
+                foreach (CodeLine line in cCode.lines)
                 {
-                    if(line.enabled)
+                    if (line.enabled)
                         textFile.Write(prepend);
                     else
                         textFile.Write("- ");
-                    textFile.Write(String.Format("{0:X8} ", line.left));
-                    textFile.WriteLine(String.Format("{0:X8}", line.right));
+                    textFile.Write(string.Format("{0:X8} ", line.left));
+                    textFile.WriteLine(string.Format("{0:X8}", line.right));
                 }
                 textFile.WriteLine(string.Empty);
             }
@@ -454,33 +454,33 @@ namespace GeckoApp
             textFile.Close();
         }
 
-        public void fromWGCFile(String input)
+        public void fromWGCFile(string input)
         {
-            if(!File.Exists(input))
+            if (!File.Exists(input))
                 return;
 
             StreamReader reader = new StreamReader(input, true);
-            String line, cName;
+            string line, cName;
             CodeContent nCode = null;
             ListViewItem nLI = null;
-            String parsedCode;
-            UInt32 left, right;
+            string parsedCode;
+            uint left, right;
             bool lEnabled = true;
 
             int i;
             bool cCEnabled = false;
 
             codeOutput.ItemChecked -= codeOutput_ItemChecked;
-            while(!reader.EndOfStream)
+            while (!reader.EndOfStream)
             {
                 line = reader.ReadLine();
-                if(line.Length == 0)
+                if (line.Length == 0)
                     continue;
 
-                if(line[0] == '[')
+                if (line[0] == '[')
                 {
                     cName = line.Substring(1, line.Length - 2);
-                    if(nCode != null)
+                    if (nCode != null)
                     {
                         nLI.Checked = cCEnabled;
                     }
@@ -491,22 +491,22 @@ namespace GeckoApp
                     continue;
                 }
                 lEnabled = true;
-                if(nCode == null)
+                if (nCode == null)
                     continue;
-                if(line[0] == '*')
+                if (line[0] == '*')
                     cCEnabled = true;
-                else if(line[0] == '-')
+                else if (line[0] == '-')
                     lEnabled = false;
                 parsedCode = string.Empty;
 
-                for(i = 0; i < line.Length; i++)
+                for (i = 0; i < line.Length; i++)
                 {
-                    Char analyze = line.ToUpper()[i];
+                    char analyze = line.ToUpper()[i];
 
-                    if(Char.IsDigit(analyze) || ((analyze >= 'A') && (analyze <= 'F')))
+                    if (char.IsDigit(analyze) || ((analyze >= 'A') && (analyze <= 'F')))
                         parsedCode += analyze;
                 }
-                if(parsedCode.Length != 16)
+                if (parsedCode.Length != 16)
                     continue;
 
                 left = Convert.ToUInt32(parsedCode.Substring(0, 8), 16);
@@ -514,7 +514,7 @@ namespace GeckoApp
                 nCode.addLine(left, right, lEnabled);
             }
             reader.Close();
-            if(cCEnabled && nCode != null)
+            if (cCEnabled && nCode != null)
             {
                 nLI.Checked = cCEnabled;
             }

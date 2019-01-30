@@ -115,4 +115,3 @@
 00050030-1001820A=Download Management (EU)
 00050030-1001920A=Miiverse Post All (EU)
 00050000-1010ED00=Mario Kart 8 (EU)
-00050000-1010CF00=Call of Duty® Black Ops II (US)

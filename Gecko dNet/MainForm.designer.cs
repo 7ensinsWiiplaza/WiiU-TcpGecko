@@ -77,9 +77,6 @@
             this.toolStripTextBoxMemViewFontSize = new System.Windows.Forms.ToolStripTextBox();
             this.MainControl = new System.Windows.Forms.TabControl();
             this.searchPage = new System.Windows.Forms.TabPage();
-            this.textBox1 = new System.Windows.Forms.TextBox();
-            this.Send = new System.Windows.Forms.Button();
-            this.GSC = new System.Windows.Forms.Button();
             this.buttonSerialPoke = new System.Windows.Forms.Button();
             this.numericUpDownNewSearchIndex = new System.Windows.Forms.NumericUpDown();
             this.buttonUndoSearch = new System.Windows.Forms.Button();
@@ -403,7 +400,6 @@
             this.runningToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.unpauseThreadToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.memoryViewerToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
-            this.textBox2 = new System.Windows.Forms.TextBox();
             toolStripMenuItem1 = new System.Windows.Forms.ToolStripSeparator();
             ((System.ComponentModel.ISupportInitialize)(this.memViewGrid)).BeginInit();
             this.memViewContextMenu.SuspendLayout();
@@ -443,7 +439,6 @@
             ((System.ComponentModel.ISupportInitialize)(this.ThreadGridView)).BeginInit();
             this.groupBoxStep.SuspendLayout();
             this.StepOutContextMenu.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.splitContainerRegASM)).BeginInit();
             this.splitContainerRegASM.Panel1.SuspendLayout();
             this.splitContainerRegASM.Panel2.SuspendLayout();
             this.splitContainerRegASM.SuspendLayout();
@@ -804,10 +799,6 @@
             // searchPage
             // 
             this.searchPage.BackColor = System.Drawing.Color.Transparent;
-            this.searchPage.Controls.Add(this.textBox2);
-            this.searchPage.Controls.Add(this.textBox1);
-            this.searchPage.Controls.Add(this.Send);
-            this.searchPage.Controls.Add(this.GSC);
             this.searchPage.Controls.Add(this.buttonSerialPoke);
             this.searchPage.Controls.Add(this.numericUpDownNewSearchIndex);
             this.searchPage.Controls.Add(this.buttonUndoSearch);
@@ -840,33 +831,6 @@
             this.searchPage.Text = "Search";
             this.searchPage.UseVisualStyleBackColor = true;
             // 
-            // textBox1
-            // 
-            this.textBox1.Location = new System.Drawing.Point(100, 271);
-            this.textBox1.Name = "textBox1";
-            this.textBox1.Size = new System.Drawing.Size(179, 20);
-            this.textBox1.TabIndex = 26;
-            // 
-            // Send
-            // 
-            this.Send.Location = new System.Drawing.Point(7, 301);
-            this.Send.Name = "Send";
-            this.Send.Size = new System.Drawing.Size(87, 23);
-            this.Send.TabIndex = 25;
-            this.Send.Text = "Send";
-            this.Send.UseVisualStyleBackColor = true;
-            this.Send.Click += new System.EventHandler(this.Send_Click);
-            // 
-            // GSC
-            // 
-            this.GSC.Location = new System.Drawing.Point(7, 271);
-            this.GSC.Name = "GSC";
-            this.GSC.Size = new System.Drawing.Size(87, 23);
-            this.GSC.TabIndex = 24;
-            this.GSC.Text = "GSC";
-            this.GSC.UseVisualStyleBackColor = true;
-            this.GSC.Click += new System.EventHandler(this.GSC_Click);
-            // 
             // buttonSerialPoke
             // 
             this.buttonSerialPoke.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
@@ -894,7 +858,7 @@
             // 
             // buttonUndoSearch
             // 
-            this.buttonUndoSearch.Location = new System.Drawing.Point(7, 232);
+            this.buttonUndoSearch.Location = new System.Drawing.Point(7, 258);
             this.buttonUndoSearch.Name = "buttonUndoSearch";
             this.buttonUndoSearch.Size = new System.Drawing.Size(87, 32);
             this.buttonUndoSearch.TabIndex = 18;
@@ -926,7 +890,7 @@
             // 
             // Search
             // 
-            this.Search.Location = new System.Drawing.Point(7, 194);
+            this.Search.Location = new System.Drawing.Point(7, 220);
             this.Search.Name = "Search";
             this.Search.Size = new System.Drawing.Size(87, 32);
             this.Search.TabIndex = 4;
@@ -951,7 +915,7 @@
             // 
             // buttonCancelSearch
             // 
-            this.buttonCancelSearch.Location = new System.Drawing.Point(100, 194);
+            this.buttonCancelSearch.Location = new System.Drawing.Point(98, 220);
             this.buttonCancelSearch.Name = "buttonCancelSearch";
             this.buttonCancelSearch.Size = new System.Drawing.Size(87, 32);
             this.buttonCancelSearch.TabIndex = 15;
@@ -961,7 +925,7 @@
             // 
             // buttonSaveSearch
             // 
-            this.buttonSaveSearch.Location = new System.Drawing.Point(100, 232);
+            this.buttonSaveSearch.Location = new System.Drawing.Point(98, 258);
             this.buttonSaveSearch.Name = "buttonSaveSearch";
             this.buttonSaveSearch.Size = new System.Drawing.Size(87, 32);
             this.buttonSaveSearch.TabIndex = 14;
@@ -990,7 +954,7 @@
             // 
             // buttonLoadSearch
             // 
-            this.buttonLoadSearch.Location = new System.Drawing.Point(193, 232);
+            this.buttonLoadSearch.Location = new System.Drawing.Point(190, 258);
             this.buttonLoadSearch.Name = "buttonLoadSearch";
             this.buttonLoadSearch.Size = new System.Drawing.Size(87, 32);
             this.buttonLoadSearch.TabIndex = 13;
@@ -1518,7 +1482,7 @@
             // ResSrch
             // 
             this.ResSrch.Enabled = false;
-            this.ResSrch.Location = new System.Drawing.Point(193, 194);
+            this.ResSrch.Location = new System.Drawing.Point(190, 220);
             this.ResSrch.Name = "ResSrch";
             this.ResSrch.Size = new System.Drawing.Size(87, 32);
             this.ResSrch.TabIndex = 5;
@@ -3457,7 +3421,6 @@
             this.GCTCodeList.ContextMenuStrip = this.gctCodeMenu;
             this.GCTCodeList.FullRowSelect = true;
             this.GCTCodeList.HeaderStyle = System.Windows.Forms.ColumnHeaderStyle.None;
-            this.GCTCodeList.HideSelection = false;
             listViewItem1.StateImageIndex = 0;
             this.GCTCodeList.Items.AddRange(new System.Windows.Forms.ListViewItem[] {
             listViewItem1});
@@ -4321,13 +4284,6 @@
             this.memoryViewerToolStripMenuItem1.Text = "Memory Viewer";
             this.memoryViewerToolStripMenuItem1.Click += new System.EventHandler(this.memoryViewerToolStripMenuItem1_Click);
             // 
-            // textBox2
-            // 
-            this.textBox2.Location = new System.Drawing.Point(100, 301);
-            this.textBox2.Name = "textBox2";
-            this.textBox2.Size = new System.Drawing.Size(100, 20);
-            this.textBox2.TabIndex = 27;
-            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -4399,7 +4355,6 @@
             this.StepOutContextMenu.ResumeLayout(false);
             this.splitContainerRegASM.Panel1.ResumeLayout(false);
             this.splitContainerRegASM.Panel2.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)(this.splitContainerRegASM)).EndInit();
             this.splitContainerRegASM.ResumeLayout(false);
             this.panel6.ResumeLayout(false);
             this.panel6.PerformLayout();
@@ -4806,10 +4761,6 @@
         private System.Windows.Forms.DataGridViewTextBoxColumn ThreadNameColumn;
         private System.Windows.Forms.DataGridViewTextBoxColumn ThreadStateColumn;
         private System.Windows.Forms.DataGridViewTextBoxColumn ThreadAddressColumn;
-        private System.Windows.Forms.TextBox textBox1;
-        private System.Windows.Forms.Button Send;
-        private System.Windows.Forms.Button GSC;
-        private System.Windows.Forms.TextBox textBox2;
     }
 }
 

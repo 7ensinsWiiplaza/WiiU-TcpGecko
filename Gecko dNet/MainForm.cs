@@ -752,7 +752,6 @@ namespace GeckoApp
         {
             SearchSize size;
             ComparisonType cType;
-            bool enableUpper;
             bool useDifference;
 
             switch (comboBoxSearchDataType.SelectedIndex)

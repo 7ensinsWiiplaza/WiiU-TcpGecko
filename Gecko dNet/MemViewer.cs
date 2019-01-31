@@ -346,8 +346,6 @@ namespace GeckoApp
             UInt32 beginAddress = startAddr;
 
             MemoryStream ms = new MemoryStream();
-            UInt32 cVal;
-            char cChar;
 
             UInt32 SearchBufferSize = 0x400 * 256;
 

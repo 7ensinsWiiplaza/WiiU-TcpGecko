@@ -211,6 +211,11 @@ namespace GeckoApp
             selectedFile = -1;
         }
 
+        public FSA(int selectedFile)
+        {
+            this.selectedFile = selectedFile;
+        }
+
         public void DumpTree()
         {
             DumpTree("content");

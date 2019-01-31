@@ -5,8 +5,8 @@ namespace GeckoApp
 {
     public partial class InputBox : Form
     {
-        public static bool Show(string title, string text, string defaultValue,
-            out string value)
+        public static bool Show(String title, String text, String defaultValue,
+            out String value)
         {
             InputBox ib = new InputBox();
             value = string.Empty;

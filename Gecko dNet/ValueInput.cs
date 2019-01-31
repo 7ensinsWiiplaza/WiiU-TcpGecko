@@ -5,14 +5,14 @@ namespace GeckoApp
 {
     public partial class ValueInput : Form
     {
-        private uint inputValue;
+        private UInt32 inputValue;
 
         public ValueInput()
         {
             InitializeComponent();
         }
 
-        public bool ShowDialog(uint address, ref uint value, int maxLength)
+        public bool ShowDialog(UInt32 address, ref UInt32 value, int maxLength)
         {
             this.InstLab.Text = "Poking address " + GlobalFunctions.toHex(address) + ":";
             this.PValue.Text = GlobalFunctions.toHex(value, maxLength);
@@ -30,7 +30,7 @@ namespace GeckoApp
 
         private void CheckInput_Click(object sender, EventArgs e)
         {
-            uint tryHex;
+            UInt32 tryHex;
             if (GlobalFunctions.tryToHex(PValue.Text, out tryHex))
             {
                 inputValue = tryHex;

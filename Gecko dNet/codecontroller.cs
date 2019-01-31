@@ -11,8 +11,8 @@ namespace GeckoApp
     public struct CodeLine
     {
         public bool enabled;
-        public uint left;
-        public uint right;
+        public UInt32 left;
+        public UInt32 right;
     }
 
     public class CodeContent
@@ -23,11 +23,11 @@ namespace GeckoApp
         {
             lines = new List<CodeLine>();
         }
-        public void addLine(uint left, uint right)
+        public void addLine(UInt32 left, UInt32 right)
         {
             addLine(left, right, true);
         }
-        public void addLine(uint left, uint right, bool enabled)
+        public void addLine(UInt32 left, UInt32 right, bool enabled)
         {
             CodeLine newLine;
             newLine.left = left;
@@ -60,7 +60,7 @@ namespace GeckoApp
             }
         }
 
-        public string GetCodeName(int index)
+        public String GetCodeName(int index)
         {
             return codeOutput.Items[index].Text;
         }
@@ -118,17 +118,17 @@ namespace GeckoApp
                 PCodesModified();
         }
 
-        public static CodeContent CodeTextBoxToCodeContent(string codeInput)
+        public static CodeContent CodeTextBoxToCodeContent(String codeInput)
         {
-            string parsedCode = string.Empty;
-            string stripedUnknown = string.Empty;
+            String parsedCode = string.Empty;
+            String stripedUnknown = string.Empty;
             int i;
 
             for (i = 0; i < codeInput.Length; i++)
             {
-                char analyze = codeInput.ToUpper()[i];
+                Char analyze = codeInput.ToUpper()[i];
 
-                if (char.IsDigit(analyze) || (analyze == '-' || analyze == '/') || ((analyze >= 'A') && (analyze <= 'F')))
+                if (Char.IsDigit(analyze) || (analyze == '-' || analyze == '/') || ((analyze >= 'A') && (analyze <= 'F')))
                     stripedUnknown += analyze;
             }
 
@@ -136,7 +136,7 @@ namespace GeckoApp
             List<int> deactCodes = new List<int>();
             for (i = 0; i < stripedUnknown.Length; i++)
             {
-                char analyze = stripedUnknown[i];
+                Char analyze = stripedUnknown[i];
 
                 if (analyze == '-' || analyze == '/')
                 {
@@ -158,8 +158,8 @@ namespace GeckoApp
                 for (int j = 0; j < loopCount; j++) parsedCode += "0";
             }
 
-            string hexString;
-            uint left, right;
+            String hexString;
+            UInt32 left, right;
             bool enabled;
 
             for (i = 0; i < parsedCode.Length / 16; i++)
@@ -178,7 +178,7 @@ namespace GeckoApp
             return ncode;
         }
 
-        public bool UpdateCode(int index, string codeInput)
+        public bool UpdateCode(int index, String codeInput)
         {
             if (index == -1)
                 return true;
@@ -202,7 +202,7 @@ namespace GeckoApp
             return UpdateCode(SelectedIndex, codeValues.Text);
         }
 
-        public void AddCode(string name)
+        public void AddCode(String name)
         {
             CodeContent newCode = new CodeContent();
             ListViewItem addCode = codeOutput.Items.Add(name);
@@ -210,7 +210,7 @@ namespace GeckoApp
             SendModified();
         }
 
-        public void AddCode(CodeContent content, string name)
+        public void AddCode(CodeContent content, String name)
         {
             ListViewItem addCode = codeOutput.Items.Add(name);
             addCode.Tag = content;
@@ -363,15 +363,15 @@ namespace GeckoApp
             }
         }
 
-        public static string CodeContentToCodeTextBox(CodeContent codeData)
+        public static String CodeContentToCodeTextBox(CodeContent codeData)
         {
-            string output = string.Empty;
+            String output = string.Empty;
             for (int i = 0; i < codeData.lines.Count; i++)
             {
                 if (!codeData.lines[i].enabled)
                     output += "--";
-                output += string.Format("{0:X8} ", codeData.lines[i].left);
-                output += string.Format("{0:X8}\r\n", codeData.lines[i].right);
+                output += String.Format("{0:X8} ", codeData.lines[i].left);
+                output += String.Format("{0:X8}\r\n", codeData.lines[i].right);
             }
             return output;
         }
@@ -386,7 +386,7 @@ namespace GeckoApp
             SendModified();
         }
 
-        private byte[] toStream(uint value)
+        private Byte[] toStream(UInt32 value)
         {
             return BitConverter.GetBytes(ByteSwap.Swap(value));
         }
@@ -423,11 +423,11 @@ namespace GeckoApp
             }
         }
 
-        public void toWGCFile(string output)
+        public void toWGCFile(String output)
         {
             StreamWriter textFile;
             textFile = new StreamWriter(output, false, Encoding.UTF8);
-            string prepend;
+            String prepend;
 
             for (int i = 0; i < codeOutput.Items.Count; i++)
             {
@@ -445,8 +445,8 @@ namespace GeckoApp
                         textFile.Write(prepend);
                     else
                         textFile.Write("- ");
-                    textFile.Write(string.Format("{0:X8} ", line.left));
-                    textFile.WriteLine(string.Format("{0:X8}", line.right));
+                    textFile.Write(String.Format("{0:X8} ", line.left));
+                    textFile.WriteLine(String.Format("{0:X8}", line.right));
                 }
                 textFile.WriteLine(string.Empty);
             }
@@ -454,17 +454,17 @@ namespace GeckoApp
             textFile.Close();
         }
 
-        public void fromWGCFile(string input)
+        public void fromWGCFile(String input)
         {
             if (!File.Exists(input))
                 return;
 
             StreamReader reader = new StreamReader(input, true);
-            string line, cName;
+            String line, cName;
             CodeContent nCode = null;
             ListViewItem nLI = null;
-            string parsedCode;
-            uint left, right;
+            String parsedCode;
+            UInt32 left, right;
             bool lEnabled = true;
 
             int i;
@@ -501,9 +501,9 @@ namespace GeckoApp
 
                 for (i = 0; i < line.Length; i++)
                 {
-                    char analyze = line.ToUpper()[i];
+                    Char analyze = line.ToUpper()[i];
 
-                    if (char.IsDigit(analyze) || ((analyze >= 'A') && (analyze <= 'F')))
+                    if (Char.IsDigit(analyze) || ((analyze >= 'A') && (analyze <= 'F')))
                         parsedCode += analyze;
                 }
                 if (parsedCode.Length != 16)

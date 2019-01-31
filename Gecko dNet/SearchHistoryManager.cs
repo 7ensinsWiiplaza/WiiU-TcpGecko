@@ -10,7 +10,7 @@ namespace GeckoApp
 {
     public struct SearchItem
     {
-        public List<uint> resultsList;
+        public List<UInt32> resultsList;
         public Dump searchDump;
         public int index;
     }
@@ -24,7 +24,7 @@ namespace GeckoApp
             BackgroundWriting = false;
         }
 
-        public void SaveSearchBackground(int index, List<uint> resultsList, Dump searchDump)
+        public void SaveSearchBackground(int index, List<UInt32> resultsList, Dump searchDump)
         {
             SearchItem foo = new SearchItem();
             foo.resultsList = new List<uint>(resultsList);
@@ -84,13 +84,13 @@ namespace GeckoApp
             }
         }
 
-        public void SaveSearch(int index, List<uint> resultsList, Dump searchDump)
+        public void SaveSearch(int index, List<UInt32> resultsList, Dump searchDump)
         {
             char delim = Path.DirectorySeparatorChar;
             SaveSearch("DumpHistory" + delim + "DumpHistory" + index + ".zip", resultsList, searchDump);
         }
 
-        public void SaveSearch(string filepath, List<uint> resultsList, Dump searchDump)
+        public void SaveSearch(string filepath, List<UInt32> resultsList, Dump searchDump)
         {
             ZipOutputStream outstream = new ZipOutputStream(filepath);
             outstream.CompressionLevel = Ionic.Zlib.CompressionLevel.BestSpeed;
@@ -133,13 +133,13 @@ namespace GeckoApp
             return searchDump;
         }
 
-        public List<uint> LoadSearchList(int index)
+        public List<UInt32> LoadSearchList(int index)
         {
             char delim = Path.DirectorySeparatorChar;
             return LoadSearchList("DumpHistory" + delim + "DumpHistory" + index + ".zip");
         }
 
-        public List<uint> LoadSearchList(string filepath)
+        public List<UInt32> LoadSearchList(string filepath)
         {
             while (BackgroundWriting) ;
 
@@ -150,7 +150,7 @@ namespace GeckoApp
 
             instream.GetNextEntry();
 
-            List<uint> searchList = (List<uint>)formatter.Deserialize(instream);
+            List<UInt32> searchList = (List<UInt32>)formatter.Deserialize(instream);
 
             instream.Close();
             instream.Dispose();
@@ -161,7 +161,7 @@ namespace GeckoApp
 
     public class SearchHistoryItem
     {
-        private List<uint> resultsList;
+        private List<UInt32> resultsList;
         private Dump searchDump;
 
 
@@ -210,7 +210,7 @@ namespace GeckoApp
 
             startTime = DateTime.Now;
 
-            List<uint> copy = new List<uint>(resultsList);
+            List<UInt32> copy = new List<uint>(resultsList);
 
             endTime = DateTime.Now;
             startTime = DateTime.Now;

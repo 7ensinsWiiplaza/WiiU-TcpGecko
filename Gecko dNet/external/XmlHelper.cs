@@ -310,7 +310,7 @@ namespace AMS.Profile
         {
             get
             {
-                return XmlDocument.InnerXml == string.Empty;
+                return XmlDocument.InnerXml == String.Empty;
             }
         }
 

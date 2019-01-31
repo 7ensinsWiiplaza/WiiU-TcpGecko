@@ -5,24 +5,24 @@ namespace GeckoApp
     public class Sheet
     {
 
-        public string title { get; set; }
+        public String title { get; set; }
 
-        public string content { get; set; }
+        public String content { get; set; }
 
         public NotePage control { get; set; } = null;
 
-        public override string ToString()
+        public override String ToString()
         {
             return title;
         }
 
-        public Sheet(string title, string content)
+        public Sheet(String title, String content)
         {
             this.title = title;
             this.content = content;
         }
 
-        public Sheet(string title)
+        public Sheet(String title)
             : this(title, string.Empty)
         { }
 

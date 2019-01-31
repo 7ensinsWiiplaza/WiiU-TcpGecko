@@ -10,17 +10,17 @@ namespace TCPTCPGecko
 {
     public class ByteSwap
     {
-        public static ushort Swap(ushort input)
+        public static UInt16 Swap(UInt16 input)
         {
             if (BitConverter.IsLittleEndian)
-                return ((ushort)(
+                return ((UInt16)(
                     ((0xFF00 & input) >> 8) |
                     ((0x00FF & input) << 8)));
             else
                 return input;
         }
 
-        public static uint Swap(uint input)
+        public static UInt32 Swap(UInt32 input)
         {
             if (BitConverter.IsLittleEndian)
                 return (
@@ -32,7 +32,7 @@ namespace TCPTCPGecko
                 return input;
         }
 
-        public static ulong Swap(ulong input)
+        public static UInt64 Swap(UInt64 input)
         {
             if (BitConverter.IsLittleEndian)
                 return (
@@ -51,59 +51,59 @@ namespace TCPTCPGecko
 
     public class Dump
     {
-        public Dump(uint theStartAddress, uint theEndAddress)
+        public Dump(UInt32 theStartAddress, UInt32 theEndAddress)
         {
             Construct(theStartAddress, theEndAddress, 0);
         }
 
-        public Dump(uint theStartAddress, uint theEndAddress, int theFileNumber)
+        public Dump(UInt32 theStartAddress, UInt32 theEndAddress, int theFileNumber)
         {
             Construct(theStartAddress, theEndAddress, theFileNumber);
         }
 
-        private void Construct(uint theStartAddress, uint theEndAddress, int theFileNumber)
+        private void Construct(UInt32 theStartAddress, UInt32 theEndAddress, int theFileNumber)
         {
             StartAddress = theStartAddress;
             EndAddress = theEndAddress;
             ReadCompletedAddress = theStartAddress;
-            mem = new byte[EndAddress - StartAddress];
+            mem = new Byte[EndAddress - StartAddress];
             fileNumber = theFileNumber;
         }
 
 
-        public uint ReadAddress32(uint addressToRead)
+        public UInt32 ReadAddress32(UInt32 addressToRead)
         {
             if (addressToRead < StartAddress) return 0;
             if (addressToRead > EndAddress - 4) return 0;
-            byte[] buffer = new byte[4];
+            Byte[] buffer = new Byte[4];
             Buffer.BlockCopy(mem, index(addressToRead), buffer, 0, 4);
-            uint result = BitConverter.ToUInt32(buffer, 0);
+            UInt32 result = BitConverter.ToUInt32(buffer, 0);
 
             return ByteSwap.Swap(result);
         }
 
-        private int index(uint addressToRead)
+        private int index(UInt32 addressToRead)
         {
             return (int)(addressToRead - StartAddress);
         }
 
-        public uint ReadAddress(uint addressToRead, int numBytes)
+        public UInt32 ReadAddress(UInt32 addressToRead, int numBytes)
         {
             if (addressToRead < StartAddress) return 0;
             if (addressToRead > EndAddress - numBytes) return 0;
 
-            byte[] buffer = new byte[4];
+            Byte[] buffer = new Byte[4];
             Buffer.BlockCopy(mem, index(addressToRead), buffer, 0, numBytes);
 
             switch (numBytes)
             {
                 case 4:
-                    uint result = BitConverter.ToUInt32(buffer, 0);
+                    UInt32 result = BitConverter.ToUInt32(buffer, 0);
 
                     return ByteSwap.Swap(result);
 
                 case 2:
-                    ushort result16 = BitConverter.ToUInt16(buffer, 0);
+                    UInt16 result16 = BitConverter.ToUInt16(buffer, 0);
 
                     return ByteSwap.Swap(result16);
 
@@ -139,10 +139,10 @@ namespace TCPTCPGecko
             foo.Dispose();
         }
 
-        public byte[] mem;
-        public uint StartAddress { get; private set; }
-        public uint EndAddress { get; private set; }
-        public uint ReadCompletedAddress { get; set; }
+        public Byte[] mem;
+        public UInt32 StartAddress { get; private set; }
+        public UInt32 EndAddress { get; private set; }
+        public UInt32 ReadCompletedAddress { get; set; }
         private int fileNumber;
     }
 
@@ -212,7 +212,7 @@ namespace TCPTCPGecko
         GamecubePad
     }
 
-    public delegate void GeckoProgress(uint address, uint currentchunk, uint allchunks, uint transferred, uint length, bool okay, bool dump);
+    public delegate void GeckoProgress(UInt32 address, UInt32 currentchunk, UInt32 allchunks, UInt32 transferred, UInt32 length, bool okay, bool dump);
 
     public class ETCPGeckoException : Exception
     {
@@ -239,7 +239,8 @@ namespace TCPTCPGecko
     {
         private tcpconn PTCP;
 
-        private const uint Maxpacketsize = 0x5000;
+        private const UInt32 packetsize = 0x5000;
+        private const UInt32 uplpacketsize = 0x5000;
 
         private const Byte cmd_poke08 = 0x01;
         private const Byte cmd_poke16 = 0x02;
@@ -248,9 +249,9 @@ namespace TCPTCPGecko
         private const Byte cmd_pause = 0x06;
         private const Byte cmd_unfreeze = 0x07;
         private const Byte cmd_breakpoint = 0x09;
-        private const Byte cmd_breakpointx = 0xa;
         private const Byte cmd_writekern = 0x0b;
         private const Byte cmd_readkern = 0x0c;
+        private const Byte cmd_breakpointx = 0x10;
         private const Byte cmd_cancelbp = 0x38;
         private const Byte cmd_sendcheats = 0x40;
         private const Byte cmd_upload = 0x41;
@@ -364,9 +365,9 @@ namespace TCPTCPGecko
             PTCP.Close();
         }
 
-        protected FTDICommand GeckoRead(byte[] recbyte, uint nobytes)
+        protected FTDICommand GeckoRead(Byte[] recbyte, UInt32 nobytes)
         {
-            uint bytes_read = 0;
+            UInt32 bytes_read = 0;
 
             try
             {
@@ -385,9 +386,9 @@ namespace TCPTCPGecko
             return FTDICommand.CMD_OK;
         }
 
-        protected FTDICommand GeckoWrite(byte[] sendbyte, int nobytes)
+        protected FTDICommand GeckoWrite(Byte[] sendbyte, Int32 nobytes)
         {
-            uint bytes_written = 0;
+            UInt32 bytes_written = 0;
 
             try
             {
@@ -406,7 +407,7 @@ namespace TCPTCPGecko
             return FTDICommand.CMD_OK;
         }
 
-        protected void SendUpdate(uint address, uint currentchunk, uint allchunks, uint transferred, uint length, bool okay, bool dump)
+        protected void SendUpdate(UInt32 address, UInt32 currentchunk, UInt32 allchunks, UInt32 transferred, UInt32 length, bool okay, bool dump)
         {
             if (PChunkUpdate != null)
                 PChunkUpdate(address, currentchunk, allchunks, transferred, length, okay, dump);
@@ -417,13 +418,13 @@ namespace TCPTCPGecko
             Dump(dump.StartAddress, dump.EndAddress, dump);
         }
 
-        public void Dump(uint startdump, uint enddump, Stream saveStream)
+        public void Dump(UInt32 startdump, UInt32 enddump, Stream saveStream)
         {
             Stream[] tempStream = { saveStream };
             Dump(startdump, enddump, tempStream);
         }
 
-        public void Dump(uint startdump, uint enddump, Stream[] saveStream)
+        public void Dump(UInt32 startdump, UInt32 enddump, Stream[] saveStream)
         {
             InitGecko();
 
@@ -434,50 +435,50 @@ namespace TCPTCPGecko
 
             if (!GeckoApp.ValidMemory.validAddress(startdump)) return;
 
-            uint memlength = enddump - startdump;
+            UInt32 memlength = enddump - startdump;
 
-            uint fullchunks = memlength / Maxpacketsize;
-            uint lastchunk = memlength % Maxpacketsize;
+            UInt32 fullchunks = memlength / packetsize;
+            UInt32 lastchunk = memlength % packetsize;
 
-            uint allchunks = fullchunks;
+            UInt32 allchunks = fullchunks;
             if (lastchunk > 0)
                 allchunks++;
 
-            ulong GeckoMemRange = ByteSwap.Swap((((ulong)startdump << 32) + ((ulong)enddump)));
+            UInt64 GeckoMemRange = ByteSwap.Swap((((UInt64)startdump << 32) + ((UInt64)enddump)));
             if (GeckoWrite(BitConverter.GetBytes(cmd_readmem), 1) != FTDICommand.CMD_OK)
                 throw new ETCPGeckoException(ETCPErrorCode.FTDICommandSendError);
 
-            byte retry = 0;
+            Byte retry = 0;
             if (GeckoWrite(BitConverter.GetBytes(GeckoMemRange), 8) != FTDICommand.CMD_OK)
                 throw new ETCPGeckoException(ETCPErrorCode.FTDICommandSendError);
 
-            uint chunk = 0;
+            UInt32 chunk = 0;
             retry = 0;
 
             bool done = false;
             CancelDump = false;
 
-            byte[] buffer = new byte[Maxpacketsize];
+            Byte[] buffer = new Byte[packetsize];
             while (chunk < fullchunks && !done)
             {
-                SendUpdate(startdump + chunk * Maxpacketsize, chunk, allchunks, chunk * Maxpacketsize, memlength, retry == 0, true);
-                byte[] response = new byte[1];
+                SendUpdate(startdump + chunk * packetsize, chunk, allchunks, chunk * packetsize, memlength, retry == 0, true);
+                Byte[] response = new Byte[1];
                 if (GeckoRead(response, 1) != FTDICommand.CMD_OK)
                 {
                     GeckoWrite(BitConverter.GetBytes(GCFAIL), 1);
                     throw new ETCPGeckoException(ETCPErrorCode.FTDIReadDataError);
                 }
-                byte reply = response[0];
+                Byte reply = response[0];
                 if (reply == BlockZero)
                 {
-                    for (int i = 0; i < Maxpacketsize; i++)
+                    for (int i = 0; i < packetsize; i++)
                     {
                         buffer[i] = 0;
                     }
                 }
                 else
                 {
-                    FTDICommand returnvalue = GeckoRead(buffer, Maxpacketsize);
+                    FTDICommand returnvalue = GeckoRead(buffer, packetsize);
                     if (returnvalue == FTDICommand.CMD_ResultError)
                     {
                         retry++;
@@ -496,7 +497,7 @@ namespace TCPTCPGecko
                 }
                 foreach (Stream stream in saveStream)
                 {
-                    stream.Write(buffer, 0, ((int)Maxpacketsize));
+                    stream.Write(buffer, 0, ((Int32)packetsize));
                 }
 
                 retry = 0;
@@ -514,14 +515,14 @@ namespace TCPTCPGecko
 
             while (!done && lastchunk > 0)
             {
-                SendUpdate(startdump + chunk * Maxpacketsize, chunk, allchunks, chunk * Maxpacketsize, memlength, retry == 0, true);
-                byte[] response = new byte[1];
+                SendUpdate(startdump + chunk * packetsize, chunk, allchunks, chunk * packetsize, memlength, retry == 0, true);
+                Byte[] response = new Byte[1];
                 if (GeckoRead(response, 1) != FTDICommand.CMD_OK)
                 {
                     GeckoWrite(BitConverter.GetBytes(GCFAIL), 1);
                     throw new ETCPGeckoException(ETCPErrorCode.FTDIReadDataError);
                 }
-                byte reply = response[0];
+                Byte reply = response[0];
                 if (reply == BlockZero)
                 {
                     for (int i = 0; i < lastchunk; i++)
@@ -550,7 +551,7 @@ namespace TCPTCPGecko
                 }
                 foreach (Stream stream in saveStream)
                 {
-                    stream.Write(buffer, 0, ((int)lastchunk));
+                    stream.Write(buffer, 0, ((Int32)lastchunk));
                 }
                 retry = 0;
                 done = true;
@@ -559,54 +560,54 @@ namespace TCPTCPGecko
         }
 
 
-        public void Dump(uint startdump, uint enddump, Dump memdump)
+        public void Dump(UInt32 startdump, UInt32 enddump, Dump memdump)
         {
             InitGecko();
 
-            uint memlength = enddump - startdump;
+            UInt32 memlength = enddump - startdump;
 
-            uint fullchunks = memlength / Maxpacketsize;
-            uint lastchunk = memlength % Maxpacketsize;
+            UInt32 fullchunks = memlength / packetsize;
+            UInt32 lastchunk = memlength % packetsize;
 
-            uint allchunks = fullchunks;
+            UInt32 allchunks = fullchunks;
             if (lastchunk > 0)
                 allchunks++;
 
-            ulong GeckoMemRange = ByteSwap.Swap((((ulong)startdump << 32) + ((ulong)enddump)));
+            UInt64 GeckoMemRange = ByteSwap.Swap((((UInt64)startdump << 32) + ((UInt64)enddump)));
             if (GeckoWrite(BitConverter.GetBytes(cmd_readmem), 1) != FTDICommand.CMD_OK)
                 throw new ETCPGeckoException(ETCPErrorCode.FTDICommandSendError);
 
-            byte retry = 0;
+            Byte retry = 0;
             if (GeckoWrite(BitConverter.GetBytes(GeckoMemRange), 8) != FTDICommand.CMD_OK)
                 throw new ETCPGeckoException(ETCPErrorCode.FTDICommandSendError);
 
-            uint chunk = 0;
+            UInt32 chunk = 0;
             retry = 0;
 
             bool done = false;
             CancelDump = false;
 
-            byte[] buffer = new byte[Maxpacketsize];
+            Byte[] buffer = new Byte[packetsize];
             while (chunk < fullchunks && !done)
             {
-                SendUpdate(startdump + chunk * Maxpacketsize, chunk, allchunks, chunk * Maxpacketsize, memlength, retry == 0, true);
-                byte[] response = new byte[1];
+                SendUpdate(startdump + chunk * packetsize, chunk, allchunks, chunk * packetsize, memlength, retry == 0, true);
+                Byte[] response = new Byte[1];
                 if (GeckoRead(response, 1) != FTDICommand.CMD_OK)
                 {
                     GeckoWrite(BitConverter.GetBytes(GCFAIL), 1);
                     throw new ETCPGeckoException(ETCPErrorCode.FTDIReadDataError);
                 }
-                byte reply = response[0];
+                Byte reply = response[0];
                 if (reply == BlockZero)
                 {
-                    for (int i = 0; i < Maxpacketsize; i++)
+                    for (int i = 0; i < packetsize; i++)
                     {
                         buffer[i] = 0;
                     }
                 }
                 else
                 {
-                    FTDICommand returnvalue = GeckoRead(buffer, Maxpacketsize);
+                    FTDICommand returnvalue = GeckoRead(buffer, packetsize);
                     if (returnvalue == FTDICommand.CMD_ResultError)
                     {
                         retry++;
@@ -623,9 +624,9 @@ namespace TCPTCPGecko
                         throw new ETCPGeckoException(ETCPErrorCode.FTDIReadDataError);
                     }
                 }
-                Buffer.BlockCopy(buffer, 0, memdump.mem, (int)(chunk * Maxpacketsize + (startdump - memdump.StartAddress)), (int)Maxpacketsize);
+                Buffer.BlockCopy(buffer, 0, memdump.mem, (int)(chunk * packetsize + (startdump - memdump.StartAddress)), (int)packetsize);
 
-                memdump.ReadCompletedAddress = ((chunk + 1) * Maxpacketsize + startdump);
+                memdump.ReadCompletedAddress = ((chunk + 1) * packetsize + startdump);
 
                 retry = 0;
                 chunk++;
@@ -642,14 +643,14 @@ namespace TCPTCPGecko
 
             while (!done && lastchunk > 0)
             {
-                SendUpdate(startdump + chunk * Maxpacketsize, chunk, allchunks, chunk * Maxpacketsize, memlength, retry == 0, true);
-                byte[] response = new byte[1];
+                SendUpdate(startdump + chunk * packetsize, chunk, allchunks, chunk * packetsize, memlength, retry == 0, true);
+                Byte[] response = new Byte[1];
                 if (GeckoRead(response, 1) != FTDICommand.CMD_OK)
                 {
                     GeckoWrite(BitConverter.GetBytes(GCFAIL), 1);
                     throw new ETCPGeckoException(ETCPErrorCode.FTDIReadDataError);
                 }
-                byte reply = response[0];
+                Byte reply = response[0];
                 if (reply == BlockZero)
                 {
                     for (int i = 0; i < lastchunk; i++)
@@ -676,7 +677,7 @@ namespace TCPTCPGecko
                         throw new ETCPGeckoException(ETCPErrorCode.FTDIReadDataError);
                     }
                 }
-                Buffer.BlockCopy(buffer, 0, memdump.mem, (int)(chunk * Maxpacketsize + (startdump - memdump.StartAddress)), (int)lastchunk);
+                Buffer.BlockCopy(buffer, 0, memdump.mem, (int)(chunk * packetsize + (startdump - memdump.StartAddress)), (int)lastchunk);
 
 
                 retry = 0;
@@ -685,37 +686,37 @@ namespace TCPTCPGecko
             SendUpdate(enddump, allchunks, allchunks, memlength, memlength, true, true);
         }
 
-        public void Upload(uint startupload, uint endupload, Stream sendStream)
+        public void Upload(UInt32 startupload, UInt32 endupload, Stream sendStream)
         {
             InitGecko();
 
-            uint memlength = endupload - startupload;
+            UInt32 memlength = endupload - startupload;
 
-            uint fullchunks = memlength / Maxpacketsize;
-            uint lastchunk = memlength % Maxpacketsize;
+            UInt32 fullchunks = memlength / uplpacketsize;
+            UInt32 lastchunk = memlength % uplpacketsize;
 
-            uint allchunks = fullchunks;
+            UInt32 allchunks = fullchunks;
             if (lastchunk > 0)
                 allchunks++;
 
-            ulong GeckoMemRange = ByteSwap.Swap((((ulong)startupload << 32) + ((ulong)endupload)));
+            UInt64 GeckoMemRange = ByteSwap.Swap((((UInt64)startupload << 32) + ((UInt64)endupload)));
             if (GeckoWrite(BitConverter.GetBytes(cmd_upload), 1) != FTDICommand.CMD_OK)
                 throw new ETCPGeckoException(ETCPErrorCode.FTDICommandSendError);
 
-            byte retry = 0;
+            Byte retry = 0;
             if (GeckoWrite(BitConverter.GetBytes(GeckoMemRange), 8) != FTDICommand.CMD_OK)
                 throw new ETCPGeckoException(ETCPErrorCode.FTDICommandSendError);
 
-            uint chunk = 0;
+            UInt32 chunk = 0;
             retry = 0;
 
-            byte[] buffer;
+            Byte[] buffer;
             while (chunk < fullchunks)
             {
-                SendUpdate(startupload + chunk * Maxpacketsize, chunk, allchunks, chunk * Maxpacketsize, memlength, retry == 0, false);
-                buffer = new byte[Maxpacketsize];
-                sendStream.Read(buffer, 0, (int)Maxpacketsize);
-                FTDICommand returnvalue = GeckoWrite(buffer, (int)Maxpacketsize);
+                SendUpdate(startupload + chunk * packetsize, chunk, allchunks, chunk * packetsize, memlength, retry == 0, false);
+                buffer = new Byte[uplpacketsize];
+                sendStream.Read(buffer, 0, (int)uplpacketsize);
+                FTDICommand returnvalue = GeckoWrite(buffer, (int)uplpacketsize);
                 if (returnvalue == FTDICommand.CMD_ResultError)
                 {
                     retry++;
@@ -724,7 +725,7 @@ namespace TCPTCPGecko
                         Disconnect();
                         throw new ETCPGeckoException(ETCPErrorCode.TooManyRetries);
                     }
-                    sendStream.Seek((-1) * ((int)Maxpacketsize), SeekOrigin.Current);
+                    sendStream.Seek((-1) * ((int)uplpacketsize), SeekOrigin.Current);
                     continue;
                 }
                 else if (returnvalue == FTDICommand.CMD_FatalError)
@@ -738,8 +739,8 @@ namespace TCPTCPGecko
 
             while (lastchunk > 0)
             {
-                SendUpdate(startupload + chunk * Maxpacketsize, chunk, allchunks, chunk * Maxpacketsize, memlength, retry == 0, false);
-                buffer = new byte[lastchunk];
+                SendUpdate(startupload + chunk * packetsize, chunk, allchunks, chunk * packetsize, memlength, retry == 0, false);
+                buffer = new Byte[lastchunk];
                 sendStream.Read(buffer, 0, (int)lastchunk);
                 FTDICommand returnvalue = GeckoWrite(buffer, (int)lastchunk);
                 if (returnvalue == FTDICommand.CMD_ResultError)
@@ -762,10 +763,10 @@ namespace TCPTCPGecko
                 lastchunk = 0;
             }
 
-            byte[] response = new byte[1];
+            Byte[] response = new Byte[1];
             if (GeckoRead(response, 1) != FTDICommand.CMD_OK)
                 throw new ETCPGeckoException(ETCPErrorCode.FTDIReadDataError);
-            byte reply = response[0];
+            Byte reply = response[0];
             if (reply != GCACK)
                 throw new ETCPGeckoException(ETCPErrorCode.FTDIInvalidReply);
             SendUpdate(endupload, allchunks, allchunks, memlength, memlength, true, false);
@@ -784,7 +785,7 @@ namespace TCPTCPGecko
             }
         }
 
-        public FTDICommand RawCommand(byte id)
+        public FTDICommand RawCommand(Byte id)
         {
             return GeckoWrite(BitConverter.GetBytes(id), 1);
         }
@@ -837,11 +838,11 @@ namespace TCPTCPGecko
             RawCommand(GCFAIL);
         }
 
-        public void poke(uint address, uint value)
+        public void poke(UInt32 address, UInt32 value)
         {
             address &= 0xFFFFFFFC;
 
-            ulong PokeVal = (((ulong)address) << 32) | ((ulong)value);
+            UInt64 PokeVal = (((UInt64)address) << 32) | ((UInt64)value);
 
             PokeVal = ByteSwap.Swap(PokeVal);
 
@@ -852,16 +853,16 @@ namespace TCPTCPGecko
                 throw new ETCPGeckoException(ETCPErrorCode.FTDICommandSendError);
         }
 
-        public void poke32(uint address, uint value)
+        public void poke32(UInt32 address, UInt32 value)
         {
             poke(address, value);
         }
 
-        public void poke16(uint address, ushort value)
+        public void poke16(UInt32 address, UInt16 value)
         {
             address &= 0xFFFFFFFE;
 
-            ulong PokeVal = (((ulong)address) << 32) | ((ulong)value);
+            UInt64 PokeVal = (((UInt64)address) << 32) | ((UInt64)value);
 
             PokeVal = ByteSwap.Swap(PokeVal);
 
@@ -872,9 +873,9 @@ namespace TCPTCPGecko
                 throw new ETCPGeckoException(ETCPErrorCode.FTDICommandSendError);
         }
 
-        public void poke08(uint address, byte value)
+        public void poke08(UInt32 address, Byte value)
         {
-            ulong PokeVal = (((ulong)address) << 32) | ((ulong)value);
+            UInt64 PokeVal = (((UInt64)address) << 32) | ((UInt64)value);
 
             PokeVal = ByteSwap.Swap(PokeVal);
 
@@ -885,9 +886,9 @@ namespace TCPTCPGecko
                 throw new ETCPGeckoException(ETCPErrorCode.FTDICommandSendError);
         }
 
-        public void poke_kern(uint address, uint value)
+        public void poke_kern(UInt32 address, UInt32 value)
         {
-            ulong PokeVal = (((ulong)address) << 32) | ((ulong)value);
+            UInt64 PokeVal = (((UInt64)address) << 32) | ((UInt64)value);
 
             PokeVal = ByteSwap.Swap(PokeVal);
 
@@ -898,7 +899,7 @@ namespace TCPTCPGecko
                 throw new ETCPGeckoException(ETCPErrorCode.FTDICommandSendError);
         }
 
-        public uint peek_kern(uint address)
+        public UInt32 peek_kern(UInt32 address)
         {
             address = ByteSwap.Swap(address);
 
@@ -908,7 +909,7 @@ namespace TCPTCPGecko
             if (GeckoWrite(BitConverter.GetBytes(address), 4) != FTDICommand.CMD_OK)
                 throw new ETCPGeckoException(ETCPErrorCode.FTDICommandSendError);
 
-            byte[] buffer = new byte[4];
+            Byte[] buffer = new Byte[4];
             if (GeckoRead(buffer, 4) != FTDICommand.CMD_OK)
                 throw new ETCPGeckoException(ETCPErrorCode.FTDICommandSendError);
 
@@ -924,7 +925,7 @@ namespace TCPTCPGecko
             if (RawCommand(cmd_status) != FTDICommand.CMD_OK)
                 throw new ETCPGeckoException(ETCPErrorCode.FTDICommandSendError);
 
-            byte[] buffer = new byte[1];
+            Byte[] buffer = new Byte[1];
             if (GeckoRead(buffer, 1) != FTDICommand.CMD_OK)
                 throw new ETCPGeckoException(ETCPErrorCode.FTDIReadDataError);
 
@@ -947,11 +948,11 @@ namespace TCPTCPGecko
                 throw new ETCPGeckoException(ETCPErrorCode.FTDICommandSendError);
         }
 
-        protected void Breakpoint(uint address, byte bptype, bool exact)
+        protected void Breakpoint(UInt32 address, Byte bptype, bool exact)
         {
             InitGecko();
 
-            uint lowaddr = (address & 0xFFFFFFF8) | bptype;
+            UInt32 lowaddr = (address & 0xFFFFFFF8) | bptype;
             bool useGeckoBP = false;
             if (exact)
                 useGeckoBP = (VersionRequest() != GCNgcVer);
@@ -961,7 +962,7 @@ namespace TCPTCPGecko
                 if (RawCommand(cmd_breakpoint) != FTDICommand.CMD_OK)
                     throw new ETCPGeckoException(ETCPErrorCode.FTDICommandSendError);
 
-                uint breakpaddr = ByteSwap.Swap(lowaddr);
+                UInt32 breakpaddr = ByteSwap.Swap(lowaddr);
 
                 if (GeckoWrite(BitConverter.GetBytes(breakpaddr), 4) != FTDICommand.CMD_OK)
                     throw new ETCPGeckoException(ETCPErrorCode.FTDICommandSendError);
@@ -971,7 +972,7 @@ namespace TCPTCPGecko
                 if (RawCommand(cmd_nbreakpoint) != FTDICommand.CMD_OK)
                     throw new ETCPGeckoException(ETCPErrorCode.FTDICommandSendError);
 
-                ulong breakpaddr = ((ulong)lowaddr) << 32 | ((ulong)address);
+                UInt64 breakpaddr = ((UInt64)lowaddr) << 32 | ((UInt64)address);
                 breakpaddr = ByteSwap.Swap(breakpaddr);
 
                 if (GeckoWrite(BitConverter.GetBytes(breakpaddr), 8) != FTDICommand.CMD_OK)
@@ -979,39 +980,39 @@ namespace TCPTCPGecko
             }
         }
 
-        public void BreakpointR(uint address, bool exact)
+        public void BreakpointR(UInt32 address, bool exact)
         {
             Breakpoint(address, BPRead, exact);
         }
-        public void BreakpointR(uint address)
+        public void BreakpointR(UInt32 address)
         {
             Breakpoint(address, BPRead, true);
         }
 
-        public void BreakpointW(uint address, bool exact)
+        public void BreakpointW(UInt32 address, bool exact)
         {
             Breakpoint(address, BPWrite, exact);
         }
-        public void BreakpointW(uint address)
+        public void BreakpointW(UInt32 address)
         {
             Breakpoint(address, BPWrite, true);
         }
 
-        public void BreakpointRW(uint address, bool exact)
+        public void BreakpointRW(UInt32 address, bool exact)
         {
             Breakpoint(address, BPReadWrite, exact);
         }
-        public void BreakpointRW(uint address)
+        public void BreakpointRW(UInt32 address)
         {
             Breakpoint(address, BPReadWrite, true);
         }
 
 
-        public void BreakpointX(uint address)
+        public void BreakpointX(UInt32 address)
         {
             InitGecko();
 
-            uint baddress = ByteSwap.Swap(((address & 0xFFFFFFFC) | BPExecute));
+            UInt32 baddress = ByteSwap.Swap(((address & 0xFFFFFFFC) | BPExecute));
 
             if (RawCommand(cmd_breakpointx) != FTDICommand.CMD_OK)
                 throw new ETCPGeckoException(ETCPErrorCode.FTDICommandSendError);
@@ -1022,7 +1023,7 @@ namespace TCPTCPGecko
 
         public bool BreakpointHit()
         {
-            byte[] buffer = new byte[1];
+            Byte[] buffer = new Byte[1];
 
             if (GeckoRead(buffer, 1) != FTDICommand.CMD_OK)
                 return false;
@@ -1036,7 +1037,7 @@ namespace TCPTCPGecko
                 throw new ETCPGeckoException(ETCPErrorCode.FTDICommandSendError);
         }
 
-        protected bool AllowedVersion(byte version)
+        protected bool AllowedVersion(Byte version)
         {
             for (int i = 0; i < GCAllowedVersions.Length; i++)
                 if (GCAllowedVersions[i] == version)
@@ -1044,16 +1045,16 @@ namespace TCPTCPGecko
             return false;
         }
 
-        public byte VersionRequest()
+        public Byte VersionRequest()
         {
             InitGecko();
 
             if (RawCommand(cmd_version) != FTDICommand.CMD_OK)
                 throw new ETCPGeckoException(ETCPErrorCode.FTDICommandSendError);
 
-            byte retries = 0;
-            byte result = 0;
-            byte[] buffer = new byte[1];
+            Byte retries = 0;
+            Byte result = 0;
+            Byte[] buffer = new Byte[1];
 
             do
             {
@@ -1071,12 +1072,12 @@ namespace TCPTCPGecko
             return result;
         }
 
-        public uint OsVersionRequest()
+        public UInt32 OsVersionRequest()
         {
             if (RawCommand(cmd_os_version) != FTDICommand.CMD_OK)
                 throw new ETCPGeckoException(ETCPErrorCode.FTDICommandSendError);
 
-            byte[] buffer = new byte[4];
+            Byte[] buffer = new Byte[4];
 
             if (GeckoRead(buffer, 4) != FTDICommand.CMD_OK)
                 throw new ETCPGeckoException(ETCPErrorCode.FTDICommandSendError);
@@ -1084,14 +1085,14 @@ namespace TCPTCPGecko
             return ByteSwap.Swap(BitConverter.ToUInt32(buffer, 0));
         }
 
-        public uint peek(uint address)
+        public UInt32 peek(UInt32 address)
         {
             if (!GeckoApp.ValidMemory.validAddress(address))
             {
                 return 0;
             }
 
-            uint paddress = address & 0xFFFFFFFC;
+            UInt32 paddress = address & 0xFFFFFFFC;
 
             MemoryStream stream = new MemoryStream();
 
@@ -1104,10 +1105,10 @@ namespace TCPTCPGecko
                 Dump(paddress, paddress + 4, stream);
 
                 stream.Seek(0, SeekOrigin.Begin);
-                byte[] buffer = new byte[4];
+                Byte[] buffer = new Byte[4];
                 stream.Read(buffer, 0, 4);
 
-                uint result = BitConverter.ToUInt32(buffer, 0);
+                UInt32 result = BitConverter.ToUInt32(buffer, 0);
 
                 result = ByteSwap.Swap(result);
 
@@ -1123,7 +1124,7 @@ namespace TCPTCPGecko
 
         public void GetRegisters(Stream stream, uint contextAddress)
         {
-            uint bytesExpected = 0x1B0;
+            UInt32 bytesExpected = 0x1B0;
 
             MemoryStream buffer = new MemoryStream();
             Dump(contextAddress + 8, contextAddress + 8 + bytesExpected, buffer);
@@ -1158,38 +1159,38 @@ namespace TCPTCPGecko
             Upload(contextAddress + 8, contextAddress + 8 + 0x98, buffer);
         }
 
-        private ulong readInt64(Stream inputstream)
+        private UInt64 readInt64(Stream inputstream)
         {
-            byte[] buffer = new byte[8];
+            Byte[] buffer = new Byte[8];
             inputstream.Read(buffer, 0, 8);
-            ulong result = BitConverter.ToUInt64(buffer, 0);
+            UInt64 result = BitConverter.ToUInt64(buffer, 0);
             result = ByteSwap.Swap(result);
             return result;
         }
 
-        private void writeInt64(Stream outputstream, ulong value)
+        private void writeInt64(Stream outputstream, UInt64 value)
         {
-            ulong bvalue = ByteSwap.Swap(value);
-            byte[] buffer = BitConverter.GetBytes(bvalue);
+            UInt64 bvalue = ByteSwap.Swap(value);
+            Byte[] buffer = BitConverter.GetBytes(bvalue);
             outputstream.Write(buffer, 0, 8);
         }
 
-        private void insertInto(Stream insertStream, ulong value)
+        private void insertInto(Stream insertStream, UInt64 value)
         {
             MemoryStream tempstream = new MemoryStream();
             writeInt64(tempstream, value);
             insertStream.Seek(0, SeekOrigin.Begin);
 
-            byte[] streambuffer = new byte[insertStream.Length];
-            insertStream.Read(streambuffer, 0, (int)insertStream.Length);
-            tempstream.Write(streambuffer, 0, (int)insertStream.Length);
+            Byte[] streambuffer = new Byte[insertStream.Length];
+            insertStream.Read(streambuffer, 0, (Int32)insertStream.Length);
+            tempstream.Write(streambuffer, 0, (Int32)insertStream.Length);
 
             insertStream.Seek(0, SeekOrigin.Begin);
             tempstream.Seek(0, SeekOrigin.Begin);
 
-            streambuffer = new byte[tempstream.Length];
-            tempstream.Read(streambuffer, 0, (int)tempstream.Length);
-            insertStream.Write(streambuffer, 0, (int)tempstream.Length);
+            streambuffer = new Byte[tempstream.Length];
+            tempstream.Read(streambuffer, 0, (Int32)tempstream.Length);
+            insertStream.Write(streambuffer, 0, (Int32)tempstream.Length);
 
             tempstream.Close();
         }
@@ -1197,12 +1198,12 @@ namespace TCPTCPGecko
         public void sendCheats(Stream inputStream)
         {
             MemoryStream cheatStream = new MemoryStream();
-            byte[] orgData = new byte[inputStream.Length];
+            Byte[] orgData = new Byte[inputStream.Length];
             inputStream.Seek(0, SeekOrigin.Begin);
-            inputStream.Read(orgData, 0, (int)inputStream.Length);
-            cheatStream.Write(orgData, 0, (int)inputStream.Length);
+            inputStream.Read(orgData, 0, (Int32)inputStream.Length);
+            cheatStream.Write(orgData, 0, (Int32)inputStream.Length);
 
-            uint length = (uint)cheatStream.Length;
+            UInt32 length = (UInt32)cheatStream.Length;
             if (length % 8 != 0)
             {
                 cheatStream.Close();
@@ -1212,7 +1213,7 @@ namespace TCPTCPGecko
             InitGecko();
 
             cheatStream.Seek(-8, SeekOrigin.End);
-            ulong data = readInt64(cheatStream);
+            UInt64 data = readInt64(cheatStream);
             data = data & 0xFE00000000000000;
             if ((data != 0xF000000000000000) &&
                  (data != 0xFE00000000000000))
@@ -1230,7 +1231,7 @@ namespace TCPTCPGecko
 
             cheatStream.Seek(0, SeekOrigin.Begin);
 
-            length = (uint)cheatStream.Length;
+            length = (UInt32)cheatStream.Length;
 
             if (GeckoWrite(BitConverter.GetBytes(cmd_sendcheats), 1) != FTDICommand.CMD_OK)
             {
@@ -1238,23 +1239,23 @@ namespace TCPTCPGecko
                 throw new ETCPGeckoException(ETCPErrorCode.FTDICommandSendError);
             }
 
-            uint fullchunks = length / Maxpacketsize;
-            uint lastchunk = length % Maxpacketsize;
+            UInt32 fullchunks = length / uplpacketsize;
+            UInt32 lastchunk = length % uplpacketsize;
 
-            uint allchunks = fullchunks;
+            UInt32 allchunks = fullchunks;
             if (lastchunk > 0)
                 allchunks++;
 
-            byte retry = 0;
+            Byte retry = 0;
             while (retry < 10)
             {
-                byte[] response = new byte[1];
+                Byte[] response = new Byte[1];
                 if (GeckoRead(response, 1) != FTDICommand.CMD_OK)
                 {
                     cheatStream.Close();
                     throw new ETCPGeckoException(ETCPErrorCode.FTDIReadDataError);
                 }
-                byte reply = response[0];
+                Byte reply = response[0];
                 if (reply == GCACK)
                     break;
                 if (retry == 9)
@@ -1264,23 +1265,23 @@ namespace TCPTCPGecko
                 }
             }
 
-            uint blength = ByteSwap.Swap(length);
+            UInt32 blength = ByteSwap.Swap(length);
             if (GeckoWrite(BitConverter.GetBytes(blength), 4) != FTDICommand.CMD_OK)
             {
                 cheatStream.Close();
                 throw new ETCPGeckoException(ETCPErrorCode.FTDICommandSendError);
             }
 
-            uint chunk = 0;
+            UInt32 chunk = 0;
             retry = 0;
 
-            byte[] buffer;
+            Byte[] buffer;
             while (chunk < fullchunks)
             {
-                SendUpdate(0x00d0c0de, chunk, allchunks, chunk * Maxpacketsize, length, retry == 0, false);
-                buffer = new byte[Maxpacketsize];
-                cheatStream.Read(buffer, 0, (int)Maxpacketsize);
-                FTDICommand returnvalue = GeckoWrite(buffer, (int)Maxpacketsize);
+                SendUpdate(0x00d0c0de, chunk, allchunks, chunk * packetsize, length, retry == 0, false);
+                buffer = new Byte[uplpacketsize];
+                cheatStream.Read(buffer, 0, (int)uplpacketsize);
+                FTDICommand returnvalue = GeckoWrite(buffer, (int)uplpacketsize);
                 if (returnvalue == FTDICommand.CMD_ResultError)
                 {
                     retry++;
@@ -1290,7 +1291,7 @@ namespace TCPTCPGecko
                         cheatStream.Close();
                         throw new ETCPGeckoException(ETCPErrorCode.TooManyRetries);
                     }
-                    cheatStream.Seek((-1) * ((int)Maxpacketsize), SeekOrigin.Current);
+                    cheatStream.Seek((-1) * ((int)uplpacketsize), SeekOrigin.Current);
                     GeckoWrite(BitConverter.GetBytes(GCRETRY), 1);
                     continue;
                 }
@@ -1301,7 +1302,7 @@ namespace TCPTCPGecko
                     throw new ETCPGeckoException(ETCPErrorCode.FTDIReadDataError);
                 }
 
-                byte[] response = new byte[1];
+                Byte[] response = new Byte[1];
                 returnvalue = GeckoRead(response, 1);
                 if ((returnvalue == FTDICommand.CMD_ResultError) || (response[0] != GCACK))
                 {
@@ -1312,7 +1313,7 @@ namespace TCPTCPGecko
                         cheatStream.Close();
                         throw new ETCPGeckoException(ETCPErrorCode.TooManyRetries);
                     }
-                    cheatStream.Seek((-1) * ((int)Maxpacketsize), SeekOrigin.Current);
+                    cheatStream.Seek((-1) * ((int)uplpacketsize), SeekOrigin.Current);
                     GeckoWrite(BitConverter.GetBytes(GCRETRY), 1);
                     continue;
                 }
@@ -1329,10 +1330,10 @@ namespace TCPTCPGecko
 
             while (lastchunk > 0)
             {
-                SendUpdate(0x00d0c0de, chunk, allchunks, chunk * Maxpacketsize, length, retry == 0, false);
-                buffer = new byte[lastchunk];
+                SendUpdate(0x00d0c0de, chunk, allchunks, chunk * packetsize, length, retry == 0, false);
+                buffer = new Byte[lastchunk];
                 cheatStream.Read(buffer, 0, (int)lastchunk);
-                FTDICommand returnvalue = GeckoWrite(buffer, (int)lastchunk);
+                FTDICommand returnvalue = GeckoWrite(buffer, (Int32)lastchunk);
                 if (returnvalue == FTDICommand.CMD_ResultError)
                 {
                     retry++;
@@ -1369,25 +1370,25 @@ namespace TCPTCPGecko
         {
             InitGecko();
 
-            byte command;
+            Byte command;
             if (pause)
                 command = cmd_hookpause;
             else
                 command = cmd_hook;
 
-            command += (byte)hookType;
+            command += (Byte)hookType;
             if (RawCommand(command) != FTDICommand.CMD_OK)
                 throw new ETCPGeckoException(ETCPErrorCode.FTDICommandSendError);
 
             if (language != WiiLanguage.NoOverride)
-                command = (byte)(language - 1);
+                command = (Byte)(language - 1);
             else
                 command = 0xCD;
 
             if (RawCommand(command) != FTDICommand.CMD_OK)
                 throw new ETCPGeckoException(ETCPErrorCode.FTDICommandSendError);
 
-            command = (byte)patches;
+            command = (Byte)patches;
             if (RawCommand(command) != FTDICommand.CMD_OK)
                 throw new ETCPGeckoException(ETCPErrorCode.FTDICommandSendError);
         }
@@ -1397,12 +1398,12 @@ namespace TCPTCPGecko
             Hook(false, WiiLanguage.NoOverride, WiiPatches.NoPatches, WiiHookType.VI);
         }
 
-        private static byte ConvertSafely(double floatValue)
+        private static Byte ConvertSafely(double floatValue)
         {
-            return (byte)Math.Round(Math.Max(0, Math.Min(floatValue, 255)));
+            return (Byte)Math.Round(Math.Max(0, Math.Min(floatValue, 255)));
         }
 
-        private static Bitmap ProcessImage(uint width, uint height, Stream analyze)
+        private static Bitmap ProcessImage(UInt32 width, UInt32 height, Stream analyze)
         {
 
             Bitmap BitmapRGB = new Bitmap((int)width, (int)height, PixelFormat.Format24bppRgb);
@@ -1411,11 +1412,11 @@ namespace TCPTCPGecko
 
             int size = bData.Stride * bData.Height;
 
-            byte[] data = new byte[size];
+            Byte[] data = new Byte[size];
 
             System.Runtime.InteropServices.Marshal.Copy(bData.Scan0, data, 0, size);
 
-            byte[] bufferBytes = new byte[width * height * 2];
+            Byte[] bufferBytes = new Byte[width * height * 2];
 
             int y = 0;
             int u = 0;
@@ -1455,17 +1456,17 @@ namespace TCPTCPGecko
             analyze = new MemoryStream();
             Dump(0xCC002000, 0xCC002080, analyze);
             analyze.Seek(0, SeekOrigin.Begin);
-            byte[] viregs = new byte[128];
+            Byte[] viregs = new Byte[128];
             analyze.Read(viregs, 0, 128);
             analyze.Close();
 
-            uint swidth = (uint)(viregs[0x49] << 3);
-            uint sheight = (uint)(((viregs[0] << 5) | (viregs[1] >> 3)) & 0x07FE);
-            uint soffset = (uint)((viregs[0x1D] << 16) | (viregs[0x1E] << 8) | viregs[0x1F]);
+            UInt32 swidth = (UInt32)(viregs[0x49] << 3);
+            UInt32 sheight = (UInt32)(((viregs[0] << 5) | (viregs[1] >> 3)) & 0x07FE);
+            UInt32 soffset = (UInt32)((viregs[0x1D] << 16) | (viregs[0x1E] << 8) | viregs[0x1F]);
             if ((viregs[0x1C] & 0x10) == 0x10)
                 soffset <<= 5;
             soffset += 0x80000000;
-            soffset -= (uint)((viregs[0x1C] & 0xF) << 3);
+            soffset -= (UInt32)((viregs[0x1C] & 0xF) << 3);
 
             analyze = new MemoryStream();
             Dump(soffset, soffset + sheight * swidth * 2, analyze);
@@ -1484,14 +1485,14 @@ namespace TCPTCPGecko
         }
 
 
-        public uint rpc(uint address, params uint[] args)
+        public UInt32 rpc(UInt32 address, params UInt32[] args)
         {
-            return (uint)(rpc64(address, args) >> 32);
+            return (UInt32)(rpc64(address, args) >> 32);
         }
 
-        public ulong rpc64(uint address, params uint[] args)
+        public UInt64 rpc64(UInt32 address, params UInt32[] args)
         {
-            byte[] buffer = new byte[4 + 8 * 4];
+            Byte[] buffer = new Byte[4 + 8 * 4];
 
             address = ByteSwap.Swap(address);
 

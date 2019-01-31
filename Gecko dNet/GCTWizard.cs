@@ -27,10 +27,10 @@ namespace GeckoApp
         public GCTWizard(CodeController codeController)
         {
             InitializeComponent();
-            RAMWriteCollection = new string[] {
+            RAMWriteCollection = new String[] {
                 "Write",
                 "Fill" };
-            IfThenCollection = new string[] {
+            IfThenCollection = new String[] {
                 "equal",
                 "not equal",
                 "greater",
@@ -86,7 +86,7 @@ namespace GeckoApp
 
             if (comboBoxCodeName.SelectedIndex == comboBoxCodeName.Items.Count - 1)
             {
-                textBoxCodeEntries.Text = string.Empty;
+                textBoxCodeEntries.Text = String.Empty;
             }
             else
             {
@@ -100,7 +100,7 @@ namespace GeckoApp
             Hide();
         }
 
-        private bool ValidUserAddress(out uint address)
+        private bool ValidUserAddress(out UInt32 address)
         {
             if (!GlobalFunctions.tryToHex(textBoxAddress.Text, out address) ||
                 !ValidMemory.validAddress(address))
@@ -129,7 +129,7 @@ namespace GeckoApp
             return true;
         }
 
-        private bool ValidUserValue(out uint value)
+        private bool ValidUserValue(out UInt32 value)
         {
             if (!GlobalFunctions.tryToHex(textBoxValue.Text, out value))
             {
@@ -157,7 +157,7 @@ namespace GeckoApp
             return true;
         }
 
-        private bool ValidUserMask(out uint mask)
+        private bool ValidUserMask(out UInt32 mask)
         {
             if (radioButton32Bit.Checked)
             {
@@ -184,7 +184,7 @@ namespace GeckoApp
             return true;
         }
 
-        private bool ValidUserFill(out uint fill)
+        private bool ValidUserFill(out UInt32 fill)
         {
             if (radioButton32Bit.Checked)
             {
@@ -219,7 +219,7 @@ namespace GeckoApp
 
         private void AddCodeRAMWrite()
         {
-            uint address, value, fill;
+            UInt32 address, value, fill;
 
             bool addFill = comboBoxCodeSubType.SelectedIndex == 1;
 
@@ -229,7 +229,7 @@ namespace GeckoApp
 
             if (!ValidUserFill(out fill)) return;
 
-            uint add;
+            UInt32 add;
 
             if (radioButton8Bit.Checked)
             {
@@ -253,7 +253,7 @@ namespace GeckoApp
 
         private void AddCodeIfThen()
         {
-            uint address, value, mask;
+            UInt32 address, value, mask;
 
             if (!ValidUserAddress(out address)) return;
 
@@ -261,7 +261,7 @@ namespace GeckoApp
 
             if (!ValidUserMask(out mask)) return;
 
-            uint add;
+            UInt32 add;
 
             if (radioButton8Bit.Checked)
             {
@@ -303,11 +303,11 @@ namespace GeckoApp
             StandardCodeAddressStuff(address, value, add);
         }
 
-        private void StandardCodeAddressStuff(uint address, uint value, uint add)
+        private void StandardCodeAddressStuff(UInt32 address, UInt32 value, UInt32 add)
         {
             CodeContent nCode = CodeController.CodeTextBoxToCodeContent(textBoxCodeEntries.Text);
-            uint rAddressR;
-            uint offset;
+            UInt32 rAddressR;
+            UInt32 offset;
 
             if (radioButtonBA.Checked)
             {
@@ -380,7 +380,7 @@ namespace GeckoApp
                 GCTCodeContents.AddCode(comboBoxCodeName.Text);
                 comboBoxCodeName.Items.Remove("New Code");
                 comboBoxCodeName.Items.Add(comboBoxCodeName.Text);
-                string codeText = textBoxCodeEntries.Text;
+                String codeText = textBoxCodeEntries.Text;
                 comboBoxCodeName.SelectedIndex = comboBoxCodeName.Items.Count - 1;
                 comboBoxCodeName.Items.Add("New Code");
                 textBoxCodeEntries.Text = codeText;

@@ -825,7 +825,7 @@ namespace TCPTCPGecko
                 {
                     NotRunning = (status() != WiiStatus.Running);
                 }
-                catch (TCPTCPGecko.ETCPGeckoException ex)
+                catch (TCPTCPGecko.ETCPGeckoException)
                 {
                     NotRunning = true;
                     failCounter++;
@@ -1523,5 +1523,9 @@ namespace TCPTCPGecko
             return ByteSwap.Swap(BitConverter.ToUInt64(buffer, 0));
         }
 
+        internal uint peek_kern()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

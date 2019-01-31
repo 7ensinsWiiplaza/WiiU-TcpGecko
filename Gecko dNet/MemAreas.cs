@@ -111,12 +111,12 @@ namespace GeckoApp
                 case 540:
                     mem = upper.peek_kern(0xFFEAAA1C);
                     break;
-                case 550:
                 case 551:
                     mem = upper.peek_kern(0xFFEAB7AC);
-                    return;
+                    break;
                 default:
-                    return;
+                    mem = upper.OsVersionRequest();
+                    break;
             }
             UInt32 tbl = upper.peek_kern(mem + 4);
             UInt32 lst = upper.peek_kern(tbl + 20);

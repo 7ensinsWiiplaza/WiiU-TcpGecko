@@ -196,7 +196,7 @@ namespace GeckoApp
             {
                 values = new FileStream(filename, FileMode.Create);
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 return new String[] { "Couldn't open diss.bin!" };
             }

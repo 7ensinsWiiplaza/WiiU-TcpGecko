@@ -463,6 +463,10 @@ namespace GeckoApp
                             title_type = gecko.peek(0x100136D0);
                             title_id = gecko.peek(0x100136D4);
                             break;
+                        case 551:
+                            title_type = gecko.peek(0x10013D90);
+                            title_id = gecko.peek(0x10013D94);
+                            break;
                         default:
                             title_type = 0;
                             title_id = 0;
@@ -1161,7 +1165,7 @@ namespace GeckoApp
                         break;
                     case 0:
                     default:
-                        value = value;
+                        currentValue = value;
                         break;
                 }
             }
@@ -4502,6 +4506,9 @@ namespace GeckoApp
                     case 532:
                         OSSuspendThread = 0x010424dc;
                         break;
+                    case 551:
+                        OSSuspendThread = 0x01047EA0;
+                        break;
                     default:
                         MessageBox.Show("Unsupported Wii U OS version.", "Version mismatch", MessageBoxButtons.OK, MessageBoxIcon.Error);
                         return;
@@ -4533,6 +4540,9 @@ namespace GeckoApp
                         break;
                     case 532:
                         OSResumeThread = 0x010419b0;
+                        break;
+                    case 551:
+                        OSResumeThread = 0x01047374;
                         break;
                     default:
                         MessageBox.Show("Unsupported Wii U OS version.", "Version mismatch", MessageBoxButtons.OK, MessageBoxIcon.Error);

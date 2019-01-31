@@ -63,7 +63,6 @@ namespace GeckoApp
 
         public void LoadHistory(string path, out int DumpNum, out SearchSize size)
         {
-            int retVal;
             using (ZipFile zip = ZipFile.Read(path))
             {
                 foreach (ZipEntry e in zip)

@@ -179,7 +179,7 @@ namespace GeckoApp
 
         private ExceptionHandler exceptionHandling;
 
-        private int selectedFile;
+        readonly int selectedFile;
 
         public FSA(TCPGecko UGecko, TreeView UTreeView, ToolStripMenuItem UExtractToolStripMenuItem, TextBox UFileSwapCode, ExceptionHandler UExceptionHandling)
         {
@@ -264,7 +264,6 @@ namespace GeckoApp
                     memalign = gecko.peek(0x100b4878);
                     free = gecko.peek(0x100b487c);
                     break;
-                case 550:
                 case 551:
                     FSInit = 0x01068E10;
                     FSAddClient = 0x01069044;
@@ -431,7 +430,6 @@ namespace GeckoApp
                     memalign = gecko.peek(0x100b4878);
                     free = gecko.peek(0x100b487c);
                     break;
-                case 550:
                 case 551:
                     FSInit = 0x01068E10;
                     FSAddClient = 0x01069044;

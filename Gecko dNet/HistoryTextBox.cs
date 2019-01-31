@@ -212,9 +212,9 @@ namespace GeckoApp.external
                 comboBoxHistory.Items.Add(addMe);
             }
 
-            if (comboBoxHistory.Items.Contains(String.Empty))
+            if (comboBoxHistory.Items.Contains(string.Empty))
             {
-                comboBoxHistory.Items.Remove(String.Empty);
+                comboBoxHistory.Items.Remove(string.Empty);
             }
         }
 
@@ -251,20 +251,20 @@ namespace GeckoApp.external
             return comboBoxHistory.Items[index].ToString();
         }
 
-        public void CopyStringToHistory(String newHistory)
+        public void CopyStringToHistory(string newHistory)
         {
-            String[] sep = newHistory.Split(new char[] { '\r', '\n' });
-            foreach (String entry in sep)
+            string[] sep = newHistory.Split(new char[] { '\r', '\n' });
+            foreach (string entry in sep)
             {
                 AddTextToHistory(entry);
             }
         }
 
-        public String GetStringFromHistory()
+        public string GetStringFromHistory()
         {
-            String result = String.Empty;
+            string result = string.Empty;
 
-            foreach (Object entry in comboBoxHistory.Items)
+            foreach (object entry in comboBoxHistory.Items)
             {
                 result += entry.ToString();
                 if (entry != comboBoxHistory.Items[comboBoxHistory.Items.Count - 1])
@@ -290,7 +290,7 @@ namespace GeckoApp.external
             comboBoxHistory.Visible = shown;
             if (comboBoxHistory.Items.Count == 0)
             {
-                comboBoxHistory.Items.Add(String.Empty);
+                comboBoxHistory.Items.Add(string.Empty);
             }
             comboBoxHistory.DroppedDown = shown;
             if (shown)

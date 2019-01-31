@@ -83,9 +83,9 @@ namespace GeckoApp
 
     public static class GlobalFunctions
     {
-        public static String fixString(String input, int length)
+        public static string fixString(string input, int length)
         {
-            String parse = input;
+            string parse = input;
             if (parse.Length > length)
                 parse =
                     parse.Substring(parse.Length - length, length);
@@ -96,37 +96,37 @@ namespace GeckoApp
             return parse;
         }
 
-        public static String shortHex(UInt32 value)
+        public static string shortHex(uint value)
         {
             return Convert.ToString(value, 16).ToUpper();
         }
 
-        public static String toHex(UInt32 value, int length)
+        public static string toHex(uint value, int length)
         {
             return fixString(Convert.ToString(value, 16).ToUpper(), length);
         }
 
-        public static String toHex(long value, int length)
+        public static string toHex(long value, int length)
         {
-            return toHex((UInt32)value);
+            return toHex((uint)value);
         }
 
-        public static String toHex(UInt32 value)
+        public static string toHex(uint value)
         {
             return toHex(value, 8);
         }
 
-        public static String toHex(long value)
+        public static string toHex(long value)
         {
-            return toHex((UInt32)value, 8);
+            return toHex((uint)value, 8);
         }
 
-        public static bool tryToHex(String input, out UInt32 value)
+        public static bool tryToHex(string input, out uint value)
         {
             value = 0;
             try
             {
-                UInt32 temp = Convert.ToUInt32(input, 16);
+                uint temp = Convert.ToUInt32(input, 16);
                 value = temp;
                 return true;
             }
@@ -134,7 +134,7 @@ namespace GeckoApp
             return false;
         }
 
-        public static bool tryToHex(String input, out byte[] value)
+        public static bool tryToHex(string input, out byte[] value)
         {
             value = new byte[(input.Length + 1) / 2];
             try
@@ -149,49 +149,49 @@ namespace GeckoApp
             return false;
         }
 
-        public static Single UIntToSingle(UInt32 input)
+        public static float UIntToSingle(uint input)
         {
-            Byte[] data = BitConverter.GetBytes(input);
-            Single result;
+            byte[] data = BitConverter.GetBytes(input);
+            float result;
             result = BitConverter.ToSingle(data, 0);
             return result;
         }
 
-        public static UInt32 SingleToUInt(Single input)
+        public static uint SingleToUInt(float input)
         {
-            Byte[] data = BitConverter.GetBytes(input);
-            UInt32 result;
+            byte[] data = BitConverter.GetBytes(input);
+            uint result;
             result = BitConverter.ToUInt32(data, 0);
             return result;
         }
 
-        public static UInt32 ReadStream(Stream input, int blength)
+        public static uint ReadStream(Stream input, int blength)
         {
-            Byte[] buffer = new Byte[blength];
-            UInt32 result;
+            byte[] buffer = new byte[blength];
+            uint result;
 
             input.Read(buffer, 0, blength);
 
             switch (blength)
             {
-                case 1: result = (UInt32)buffer[0]; break;
-                case 2: result = (UInt32)ByteSwap.Swap(BitConverter.ToUInt16(buffer, 0)); break;
+                case 1: result = (uint)buffer[0]; break;
+                case 2: result = (uint)ByteSwap.Swap(BitConverter.ToUInt16(buffer, 0)); break;
                 default: result = ByteSwap.Swap(BitConverter.ToUInt32(buffer, 0)); break;
             }
 
             return result;
         }
 
-        public static UInt32 ReadStream(Stream input)
+        public static uint ReadStream(Stream input)
         {
             return ReadStream(input, 4);
         }
 
-        public static void WriteStream(Stream output, UInt32 value, int blength)
+        public static void WriteStream(Stream output, uint value, int blength)
         {
-            Byte[] buffer = new Byte[blength];
+            byte[] buffer = new byte[blength];
 
-            Byte[] vBuffer = vBuffer = BitConverter.GetBytes(value);
+            byte[] vBuffer = vBuffer = BitConverter.GetBytes(value);
 
             switch (blength)
             {
@@ -214,7 +214,7 @@ namespace GeckoApp
 
         }
 
-        public static void WriteStream(Stream output, UInt32 value)
+        public static void WriteStream(Stream output, uint value)
         {
             WriteStream(output, value, 4);
         }
@@ -227,14 +227,14 @@ namespace GeckoApp
         public static byte SafeToUpper(byte input)
         {
             char foo = ((char)input);
-            byte retVal = Char.IsLetter(foo) ? (byte)(Char.ToUpper(foo)) : input;
+            byte retVal = char.IsLetter(foo) ? (byte)(char.ToUpper(foo)) : input;
             return retVal;
         }
 
         public static byte SafeToLower(byte input)
         {
             char foo = ((char)input);
-            byte retVal = Char.IsLetter(foo) ? (byte)(Char.ToLower(foo)) : input;
+            byte retVal = char.IsLetter(foo) ? (byte)(char.ToLower(foo)) : input;
             return retVal;
         }
 

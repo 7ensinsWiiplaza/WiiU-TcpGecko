@@ -40,7 +40,7 @@ namespace GeckoApp
     public class SearchComparisonInfo
     {
         public ComparisonType comparisonType;
-        public UInt32 value;
+        public uint value;
         public SearchType searchType;
 
         public SearchComparisonInfo()
@@ -50,7 +50,7 @@ namespace GeckoApp
             searchType = SearchType.Exact;
         }
 
-        public SearchComparisonInfo(ComparisonType ctype, UInt32 searchValue, SearchType stype)
+        public SearchComparisonInfo(ComparisonType ctype, uint searchValue, SearchType stype)
         {
             comparisonType = ctype;
             value = searchValue;
@@ -62,11 +62,11 @@ namespace GeckoApp
     public class SearchResult
     {
 
-        public UInt32 address { get; private set; }
-        public UInt32 value { get; private set; }
-        public UInt32 oldValue { get; private set; }
+        public uint address { get; private set; }
+        public uint value { get; private set; }
+        public uint oldValue { get; private set; }
 
-        public SearchResult(UInt32 address, UInt32 value, UInt32 old)
+        public SearchResult(uint address, uint value, uint old)
         {
             this.address = address;
             this.value = value;
@@ -76,22 +76,22 @@ namespace GeckoApp
 
     public class DumpRange
     {
-        public UInt32 rangeLength;
-        public UInt32 streamOffset;
+        public uint rangeLength;
+        public uint streamOffset;
 
-        public UInt32 startAddress { get; set; }
-        public UInt32 endAddress { get; set; }
+        public uint startAddress { get; set; }
+        public uint endAddress { get; set; }
 
         public DumpRange()
         {
         }
 
-        public DumpRange(UInt32 startAddress)
+        public DumpRange(uint startAddress)
         {
             this.startAddress = startAddress;
         }
 
-        public DumpRange(UInt32 startAddress, UInt32 endAddress)
+        public DumpRange(uint startAddress, uint endAddress)
         {
             this.startAddress = startAddress;
             this.endAddress = endAddress;
@@ -100,16 +100,16 @@ namespace GeckoApp
 
     public struct StringResult
     {
-        public String SAddress;
-        public String SValue;
-        public String SOldValue;
+        public string SAddress;
+        public string SValue;
+        public string SOldValue;
     }
 
     public class MemSearch
     {
         const int pageSize = 256;
 
-        private List<UInt32> resultAddressList;
+        private List<uint> resultAddressList;
         private SearchSize sSize;
         private int cPage;
         private int cPages;
@@ -120,8 +120,8 @@ namespace GeckoApp
         { get { return sSize; } }
 
         private bool UnknownStart;
-        private UInt32 UnknownLAddress;
-        private UInt32 UnknownHAddress;
+        private uint UnknownLAddress;
+        private uint UnknownHAddress;
 
         private TCPGecko gecko;
         private DataGridView gView;
@@ -132,7 +132,7 @@ namespace GeckoApp
         public Dump oldDump;
         public Dump newDump;
         private Dump undoDump;
-        private List<UInt32> undoList;
+        private List<uint> undoList;
         private int dumpNum;
         public int DumpNum
         {
@@ -143,14 +143,14 @@ namespace GeckoApp
         private bool NewSearch = true;
 
         private ExceptionHandler exceptionHandling;
-        public String DisplayType { get; set; }
+        public string DisplayType { get; set; }
         public bool blockDump { get; private set; }
-        public UInt32 totalBlockSize { get; private set; }
-        public UInt32 blocksDumpedSize { get; private set; }
+        public uint totalBlockSize { get; private set; }
+        public uint blocksDumpedSize { get; private set; }
         public int blockID { get; private set; }
         public int blockCount { get; private set; }
-        public UInt32 blockStart { get; private set; }
-        public UInt32 blockEnd { get; private set; }
+        public uint blockStart { get; private set; }
+        public uint blockEnd { get; private set; }
 
 
         public MemSearch(TCPGecko uGecko, DataGridView uGView, Button uPrvButton, Button uNxButton,
@@ -214,7 +214,7 @@ namespace GeckoApp
              + cPages.ToString() + " pages)";
 
             int i = 0;
-            String addr, value, oldv, diff;
+            string addr, value, oldv, diff;
 
             int strLength;
             switch (sSize)
@@ -310,9 +310,9 @@ namespace GeckoApp
             pageUpDown.Value = Convert.ToDecimal(cPage);
         }
 
-        private String fixString(String input, int length)
+        private string fixString(string input, int length)
         {
-            String parse = input;
+            string parse = input;
             if (parse.Length > length)
                 parse =
                     parse.Substring(parse.Length - length, length);
@@ -323,14 +323,14 @@ namespace GeckoApp
             return parse;
         }
 
-        public UInt32 GetAddress(int index)
+        public uint GetAddress(int index)
         {
             return resultAddressList[cPage * pageSize + index];
         }
 
         public StringResult GetResult(int index)
         {
-            UInt32 resultAddress = GetAddress(index);
+            uint resultAddress = GetAddress(index);
 
             int strLength;
             switch (sSize)
@@ -353,22 +353,22 @@ namespace GeckoApp
             return result;
         }
 
-        public UInt32 GetNewValueFromAddress(UInt32 resultAddress)
+        public uint GetNewValueFromAddress(uint resultAddress)
         {
             return newDump.ReadAddress(resultAddress, 4);
         }
 
-        public static UInt32 ReadStream(Stream input, int blength)
+        public static uint ReadStream(Stream input, int blength)
         {
-            Byte[] buffer = new Byte[blength];
-            UInt32 result;
+            byte[] buffer = new byte[blength];
+            uint result;
 
             input.Read(buffer, 0, blength);
 
             switch (blength)
             {
-                case 1: result = (UInt32)buffer[0]; break;
-                case 2: result = (UInt32)ByteSwap.Swap(BitConverter.ToUInt16(buffer, 0)); break;
+                case 1: result = (uint)buffer[0]; break;
+                case 2: result = (uint)ByteSwap.Swap(BitConverter.ToUInt16(buffer, 0)); break;
                 default: result = ByteSwap.Swap(BitConverter.ToUInt32(buffer, 0)); break;
             }
 
@@ -404,13 +404,13 @@ namespace GeckoApp
             this.blockDump = false;
         }
 
-        private List<DumpRange> FindDumpRanges(UInt32 startAddress, Byte valueLength, int lowIndex, int highIndex)
+        private List<DumpRange> FindDumpRanges(uint startAddress, byte valueLength, int lowIndex, int highIndex)
         {
-            const UInt32 blockSize = 0x3E000;
+            const uint blockSize = 0x3E000;
 
             List<DumpRange> dumpranges = new List<DumpRange>();
 
-            UInt32 lastAddress;
+            uint lastAddress;
 
             if (resultAddressList.Count > 0)
             {
@@ -445,15 +445,15 @@ namespace GeckoApp
             return dumpranges;
         }
 
-        private bool Compare(UInt32 given, UInt32 loExpected, UInt32 hiExpected, bool useHigh,
-            ComparisonType cType, UInt32 diffBy, bool floatCompare)
+        private bool Compare(uint given, uint loExpected, uint hiExpected, bool useHigh,
+            ComparisonType cType, uint diffBy, bool floatCompare)
         {
             if (floatCompare)
             {
-                Single givenSingle = GlobalFunctions.UIntToSingle(given),
+                float givenSingle = GlobalFunctions.UIntToSingle(given),
                     loExpectedSingle = GlobalFunctions.UIntToSingle(loExpected),
                     diffBySingle = GlobalFunctions.UIntToSingle(diffBy);
-                if (Single.IsNaN(givenSingle) || Single.IsNaN(loExpectedSingle) || Single.IsNaN(diffBySingle))
+                if (float.IsNaN(givenSingle) || float.IsNaN(loExpectedSingle) || float.IsNaN(diffBySingle))
                 {
                     return false;
                 }
@@ -503,18 +503,18 @@ namespace GeckoApp
             }
         }
 
-        private bool CompareRefactored(UInt32 newDumpVal, UInt32 oldDumpVal, UInt32 UndoDumpVal, List<SearchComparisonInfo> comparisons, bool floatCompare)
+        private bool CompareRefactored(uint newDumpVal, uint oldDumpVal, uint UndoDumpVal, List<SearchComparisonInfo> comparisons, bool floatCompare)
         {
             bool success = true;
             int others = 0;
             int GT = 0;
             int LT = 0;
             bool reverseGTLT = false;
-            UInt32 GTValue = 0, LTValue = 0;
+            uint GTValue = 0, LTValue = 0;
             foreach (SearchComparisonInfo comp in comparisons)
             {
-                UInt32 LHS = newDumpVal;
-                UInt32 RHS = comp.value;
+                uint LHS = newDumpVal;
+                uint RHS = comp.value;
 
                 SearchType sType = comp.searchType;
 
@@ -587,14 +587,14 @@ namespace GeckoApp
             return (others > 0);
         }
 
-        private bool CompareRefactored(UInt32 given, UInt32 loExpected, ComparisonType cType, UInt32 diffBy, bool floatCompare)
+        private bool CompareRefactored(uint given, uint loExpected, ComparisonType cType, uint diffBy, bool floatCompare)
         {
             if (floatCompare)
             {
-                Single givenSingle = GlobalFunctions.UIntToSingle(given),
+                float givenSingle = GlobalFunctions.UIntToSingle(given),
                     loExpectedSingle = GlobalFunctions.UIntToSingle(loExpected),
                     diffBySingle = GlobalFunctions.UIntToSingle(diffBy);
-                if (Single.IsNaN(givenSingle) || Single.IsNaN(loExpectedSingle) || Single.IsNaN(diffBySingle))
+                if (float.IsNaN(givenSingle) || float.IsNaN(loExpectedSingle) || float.IsNaN(diffBySingle))
                 {
                     return false;
                 }
@@ -631,7 +631,7 @@ namespace GeckoApp
             }
         }
 
-        private void FindPairs(UInt32 sAddress, UInt32 eAddress, Byte valSize, out UInt32 firstAddress, out UInt32 lastAddress, out int firstAddressIndex, out int lastAddressIndex)
+        private void FindPairs(uint sAddress, uint eAddress, byte valSize, out uint firstAddress, out uint lastAddress, out int firstAddressIndex, out int lastAddressIndex)
         {
             firstAddress = sAddress;
             lastAddress = eAddress;
@@ -683,14 +683,14 @@ namespace GeckoApp
             dumpNum = 0;
         }
 
-        public bool Search(UInt32 sAddress, UInt32 eAddress, UInt32 lValue, UInt32 hValue,
+        public bool Search(uint sAddress, uint eAddress, uint lValue, uint hValue,
             bool useHValue, SearchType sType, SearchSize sSize, ComparisonType cType,
-            UInt32 differentBy)
+            uint differentBy)
         {
             blockDump = false;
 
             resLab.Text = "Searching";
-            Byte bufferlength = 0;
+            byte bufferlength = 0;
 
             switch (sSize)
             {
@@ -722,7 +722,7 @@ namespace GeckoApp
             bool doCompare = false;
 
             Dump searchDump = newDump;
-            UInt32 dumpStart, dumpEnd, dumpOffset;
+            uint dumpStart, dumpEnd, dumpOffset;
 
             dumpStart = sAddress;
             dumpEnd = eAddress;
@@ -787,7 +787,7 @@ namespace GeckoApp
             {
                 if (doBlockSearch)
                 {
-                    UInt32 startAddress, endAddress;
+                    uint startAddress, endAddress;
                     int startAddressIndex, endAddressIndex;
                     FindPairs(sAddress, eAddress, bufferlength, out startAddress, out endAddress, out startAddressIndex, out endAddressIndex);
                     List<DumpRange> dumpRanges = FindDumpRanges(startAddress, bufferlength, startAddressIndex, endAddressIndex);
@@ -813,13 +813,13 @@ namespace GeckoApp
                     useHValue = false;
                 }
 
-                UInt32 val, cmpVal;
+                uint val, cmpVal;
                 cmpVal = lValue;
 
                 if (resultAddressList.Count > 0)
                 {
-                    List<UInt32> tempAddressList = new List<uint>();
-                    foreach (UInt32 compareAddress in resultAddressList)
+                    List<uint> tempAddressList = new List<uint>();
+                    foreach (uint compareAddress in resultAddressList)
                     {
                         val = newDump.ReadAddress(compareAddress, bufferlength);
                         if (sType == SearchType.Unknown)
@@ -845,7 +845,7 @@ namespace GeckoApp
                 }
                 else
                 {
-                    for (UInt32 i = newDump.StartAddress; i < newDump.EndAddress; i += bufferlength)
+                    for (uint i = newDump.StartAddress; i < newDump.EndAddress; i += bufferlength)
                     {
                         val = newDump.ReadAddress(i, bufferlength);
                         if (sType != SearchType.Exact)
@@ -887,12 +887,12 @@ namespace GeckoApp
             return true;
         }
 
-        public bool SearchRefactored(UInt32 sAddress, UInt32 eAddress, List<SearchComparisonInfo> comparisons, SearchSize searchSize, uint val)
+        public bool SearchRefactored(uint sAddress, uint eAddress, List<SearchComparisonInfo> comparisons, SearchSize searchSize, uint val)
         {
             blockDump = false;
 
             resLab.Text = "Searching";
-            Byte bufferlength = 0;
+            byte bufferlength = 0;
 
             switch (searchSize)
             {
@@ -926,7 +926,7 @@ namespace GeckoApp
             bool doCompare = false;
 
             Dump searchDump = newDump;
-            UInt32 dumpStart, dumpEnd, dumpOffset;
+            uint dumpStart, dumpEnd, dumpOffset;
 
             dumpStart = sAddress;
             dumpEnd = eAddress;
@@ -981,7 +981,7 @@ namespace GeckoApp
 
             if (doBlockSearch)
             {
-                UInt32 startAddress, endAddress;
+                uint startAddress, endAddress;
                 int startAddressIndex, endAddressIndex;
                 FindPairs(dumpStart, dumpEnd, bufferlength, out startAddress, out endAddress, out startAddressIndex, out endAddressIndex);
                 List<DumpRange> dumpRanges = FindDumpRanges(startAddress, bufferlength, startAddressIndex, endAddressIndex);
@@ -996,17 +996,17 @@ namespace GeckoApp
 
             if (doCompare)
             {
-                UInt32 cmpVal;
+                uint cmpVal;
                 cmpVal = comparisons[0].value;
 
                 if (resultAddressList.Count > 0)
                 {
-                    List<UInt32> tempAddressList = new List<uint>();
-                    foreach (UInt32 compareAddress in resultAddressList)
+                    List<uint> tempAddressList = new List<uint>();
+                    foreach (uint compareAddress in resultAddressList)
                     {
-                        UInt32 newDumpVal = newDump.ReadAddress(compareAddress, bufferlength);
-                        UInt32 oldDumpVal = oldDump.ReadAddress(compareAddress, bufferlength);
-                        UInt32 UndoDumpVal;
+                        uint newDumpVal = newDump.ReadAddress(compareAddress, bufferlength);
+                        uint oldDumpVal = oldDump.ReadAddress(compareAddress, bufferlength);
+                        uint UndoDumpVal;
                         if (undoDump != null)
                         {
                             UndoDumpVal = undoDump.ReadAddress(compareAddress, bufferlength);
@@ -1025,11 +1025,11 @@ namespace GeckoApp
                 }
                 else
                 {
-                    for (UInt32 i = newDump.StartAddress; i < newDump.EndAddress; i += bufferlength)
+                    for (uint i = newDump.StartAddress; i < newDump.EndAddress; i += bufferlength)
                     {
-                        UInt32 newDumpVal = newDump.ReadAddress(i, bufferlength);
-                        UInt32 oldDumpVal = newDumpVal;
-                        UInt32 UndoDumpVal = newDumpVal;
+                        uint newDumpVal = newDump.ReadAddress(i, bufferlength);
+                        uint oldDumpVal = newDumpVal;
+                        uint UndoDumpVal = newDumpVal;
                         if (sType != SearchType.Exact)
                         {
                             oldDumpVal = oldDump.ReadAddress(i, bufferlength);
@@ -1082,7 +1082,7 @@ namespace GeckoApp
             return true;
         }
 
-        public void SafeDump(UInt32 startdump, UInt32 enddump, Dump memdump)
+        public void SafeDump(uint startdump, uint enddump, Dump memdump)
         {
             bool finished = false;
             while (!finished)
@@ -1334,12 +1334,12 @@ namespace GeckoApp
             PrintPageAlt();
         }
 
-        public class SearchResultComparer : IComparer<UInt32>
+        public class SearchResultComparer : IComparer<uint>
         {
             public int sortedColumn = 0;
             public bool descending = false;
             public Dump oldDump, newDump;
-            public int Compare(UInt32 x, UInt32 y)
+            public int Compare(uint x, uint y)
             {
                 if (x == y)
                 {

@@ -27,7 +27,7 @@ namespace GeckoApp
             ImageCodecInfo[] formats =
                 ImageCodecInfo.GetImageDecoders();
 
-            String expectedMime;
+            string expectedMime;
             switch (format)
             {
                 case ScreenshotFormat.BMP:

@@ -20,8 +20,8 @@ namespace GeckoApp
         }
 
         public Label[] longRegTextBox { get; private set; }
-        public static String[] longRegNames { get; private set; } =
-            new String[72] {
+        public static string[] longRegNames { get; private set; } =
+            new string[72] {
                 "  CR"," XER"," CTR","DSIS"," DAR","SRR0","SRR1",
                 "  r0","  r1","  r2","  r3","  r4","  r5","  r6","  r7",
                 "  r8","  r9"," r10"," r11"," r12"," r13"," r14"," r15",
@@ -35,9 +35,9 @@ namespace GeckoApp
             };
         public int[] longRegIDs { get; private set; }
         public Label[] shortRegTextBox { get; private set; }
-        public String[] shortRegNames { get; private set; }
+        public string[] shortRegNames { get; private set; }
 
-        public static int regTextToID(String reg)
+        public static int regTextToID(string reg)
         {
             for (int i = 0; i < 72; i++)
             {
@@ -82,7 +82,7 @@ namespace GeckoApp
                 mLR
             };
 
-            shortRegNames = new String[40]  {
+            shortRegNames = new string[40]  {
                 "CR","XER","CTR","DSIS","DAR","SRR0","SRR1",
                 "r0","r1","r2","r3","r4","r5","r6","r7",
                 "r8","r9","r10","r11","r12","r13","r14","r15",

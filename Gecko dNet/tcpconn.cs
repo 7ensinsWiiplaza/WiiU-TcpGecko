@@ -77,7 +77,7 @@ namespace TCPTCPGecko
             stream.Flush();
         }
 
-        public void Read(Byte[] buffer, UInt32 nobytes, ref UInt32 bytes_read)
+        public void Read(byte[] buffer, uint nobytes, ref uint bytes_read)
         {
             try
             {
@@ -108,7 +108,7 @@ namespace TCPTCPGecko
             }
         }
 
-        public void Write(Byte[] buffer, Int32 nobytes, ref UInt32 bytes_written)
+        public void Write(byte[] buffer, int nobytes, ref uint bytes_written)
         {
             try
             {

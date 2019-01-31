@@ -41,7 +41,7 @@ namespace GeckoApp
 
             mainForm.DisconnectButton_Click(mainForm, new EventArgs());
             ETCPErrorCode error = exc.ErrorCode;
-            String msg = string.Empty;
+            string msg = string.Empty;
             switch (error)
             {
                 case ETCPErrorCode.CheatStreamSizeInvalid: msg = "Cheat stream size is invalid!"; break;

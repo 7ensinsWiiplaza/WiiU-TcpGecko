@@ -108,7 +108,6 @@ namespace GeckoApp
                 miniDump.Seek(0, SeekOrigin.Begin);
                 UInt32 value, bValue;
                 Byte[] buffer = new Byte[4];
-                UInt16 hwInput;
                 UInt32 pValue = 0;
                 for (int i = 0; i < 16; i++)
                 {
